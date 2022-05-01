@@ -1,0 +1,14 @@
+﻿{
+  "$schema": "https://raw.githubusercontent.com/bsmg/BSIPA-MetadataFileSchema/master/Schema.json",
+  "id": "NullponSpectrum",
+  "name": "NullponSpectrum",
+  "author": "",
+  "version": "0.0.1",
+  "description": "",
+  "gameVersion": "1.20.0",
+  "dependsOn": {
+    "BSIPA": "^4.2.2",
+    "BeatSaberMarkupLanguage": "^1.6.2",
+    "SiraUtil": "^3.0.5"
+  }
+}

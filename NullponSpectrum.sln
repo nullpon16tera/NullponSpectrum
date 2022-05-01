@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32106.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NullponSpectrum", "NullponSpectrum\NullponSpectrum.csproj", "{5F767D1C-07F4-476D-BA4C-9620BBBB7D4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5F767D1C-07F4-476D-BA4C-9620BBBB7D4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F767D1C-07F4-476D-BA4C-9620BBBB7D4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F767D1C-07F4-476D-BA4C-9620BBBB7D4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F767D1C-07F4-476D-BA4C-9620BBBB7D4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6644F292-05F4-4503-A61C-2A5275FED243}
+	EndGlobalSection
+EndGlobal

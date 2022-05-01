@@ -1,0 +1,18 @@
+﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
+	<vertical pad-top='2'>
+		<horizontal child-expand-width='false' spacing='2'>
+			<bool-setting text='Enable' value='enable' apply-on-change='true'></bool-setting>
+		</horizontal>
+		<horizontal child-expand-width='false' spacing='2'>
+			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+				<modifier value='CubeVisualizer' apply-on-change='true' text='Cube Visualizer'></modifier>
+			</vertical>
+			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+				
+			</vertical>
+			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+				
+			</vertical>
+		</horizontal>
+	</vertical>
+</bg>
