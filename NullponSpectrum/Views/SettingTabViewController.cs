@@ -27,6 +27,13 @@ namespace NullponSpectrum.Views
             set => PluginConfig.Instance.CubeVisualizer = value;
         }
 
+        [UIValue("FrameVisualizer")]
+        public bool FrameVisualizer
+        {
+            get => PluginConfig.Instance.FrameVisualizer;
+            set => PluginConfig.Instance.FrameVisualizer = value;
+        }
+
         protected override void OnDestroy()
         {
             GameplaySetup.instance.RemoveTab("Nullpon Spectrum");
