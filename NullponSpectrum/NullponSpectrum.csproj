@@ -125,11 +125,14 @@
     <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />
+    <Compile Include="Controllers\InitializerController.cs" />
+    <Compile Include="GameObjectExtension.cs" />
     <Compile Include="Installers\NullponSpectrumGameInstaller.cs" />
     <Compile Include="Installers\NullponSpectrumMenuInstaller.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\VMCAvatarUtil.cs" />
     <Compile Include="Views\SettingTabViewController.cs" />
   </ItemGroup>
   <ItemGroup>

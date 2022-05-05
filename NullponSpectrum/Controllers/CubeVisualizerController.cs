@@ -84,6 +84,8 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
+            cubeRoot.transform.position = Vector3.zero;
+
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW

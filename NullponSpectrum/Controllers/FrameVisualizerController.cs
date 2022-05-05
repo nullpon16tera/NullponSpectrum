@@ -1,9 +1,11 @@
-﻿using NullponSpectrum.AudioSpectrums;
+﻿using NullponSpectrum.Configuration;
+using NullponSpectrum.AudioSpectrums;
+using NullponSpectrum.Utilities;
 using System;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 using System.Collections.Generic;
-using NullponSpectrum.Configuration;
 
 namespace NullponSpectrum.Controllers
 {
@@ -65,7 +67,6 @@ namespace NullponSpectrum.Controllers
         }
 
 
-
         public void Initialize()
         {
             if (!PluginConfig.Instance.Enable)
@@ -78,11 +79,11 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (frameRoot == null)
-            {
-                this.frameRoot = new GameObject("frameVisualizerRoot");
-            }
+            Plugin.Log.Debug($"Utility: {_util}");
 
+            this.frameRoot = new GameObject("frameVisualizerRoot");
+            
+            
             GameObject parent = new GameObject("framePlaySpace");
 
             for (int r = 0; r < 4; r++)
@@ -145,6 +146,31 @@ namespace NullponSpectrum.Controllers
             {
                 obj.SetActive(obj);
             }
+
+            string[] array = new string[]
+            {
+                "Environment/PlayersPlace",
+                "CustomPlatforms"
+            };
+            GameObject[] source = Resources.FindObjectsOfTypeAll<GameObject>();
+            string[] array2 = array;
+            GameObject floorObject = null;
+            for (int i = 0; i < array2.Length; i++)
+            {
+                string floorObjectName = array2[i];
+                GameObject gameObject = (from o in source
+                                         where o.GetFullPath(false) == floorObjectName
+                                         select o).FirstOrDefault<GameObject>();
+                if (gameObject)
+                {
+                    floorObject = gameObject;
+                }
+
+            }
+            if (floorObject == null)
+            {
+                this.frameRoot.transform.SetParent(floorObject.transform);
+            }
         }
 
         public GameObject Clone(GameObject go)
@@ -157,10 +183,12 @@ namespace NullponSpectrum.Controllers
         }
 
         private AudioSpectrum _audioSpectrum;
+        private VMCAvatarUtil _util;
 
         [Inject]
-        public void Constructor(AudioSpectrum audioSpectrum)
+        public void Constructor(AudioSpectrum audioSpectrum, VMCAvatarUtil util)
         {
+            this._util = util;
             this._audioSpectrum = audioSpectrum;
             this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 0.3f;
