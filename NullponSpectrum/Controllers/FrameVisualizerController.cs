@@ -15,12 +15,11 @@ namespace NullponSpectrum.Controllers
     public class FrameVisualizerController : IInitializable, IDisposable
     {
         private float scale = 2f;
-        private bool _disposedValue;
         private int size = 4;
 
         private List<GameObject> cubes = new List<GameObject>(4);
         private List<Material> _materials = new List<Material>(4);
-        private GameObject frameRoot;
+        private GameObject frameRoot = new GameObject("frameVisualizerRoot");
 
         public enum FramePosition {
             Front,
@@ -83,8 +82,6 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-
-            this.frameRoot = new GameObject("frameVisualizerRoot");
             GameObject parent = new GameObject("framePlaySpace");
 
             for (int r = 0; r < 4; r++)
@@ -148,7 +145,10 @@ namespace NullponSpectrum.Controllers
                 obj.SetActive(obj);
             }
 
-            string[] array = new string[]
+            Plugin.Log.Debug($"FrameVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
+            this.frameRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+
+            /*string[] array = new string[]
             {
                 "Environment/PlayersPlace",
                 "CustomPlatforms"
@@ -179,7 +179,7 @@ namespace NullponSpectrum.Controllers
                     }
                 }
 
-            }
+            }*/
         }
 
         public GameObject Clone(GameObject go)
@@ -193,6 +193,7 @@ namespace NullponSpectrum.Controllers
 
         private Dictionary<GameObject, Vector3> _initialPositions = new Dictionary<GameObject, Vector3>();
 
+        private bool _disposedValue;
         private AudioSpectrum _audioSpectrum;
 
         [Inject]
