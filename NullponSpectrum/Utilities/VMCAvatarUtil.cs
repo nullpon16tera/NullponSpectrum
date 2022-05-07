@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace NullponSpectrum.Utilities
 {
-    public class VMCAvatarUtil : MonoBehaviour
+    internal class VMCAvatarUtil : MonoBehaviour
     {
         public static bool IsInstallVMCAvatar { get; private set; }
 

@@ -147,39 +147,6 @@ namespace NullponSpectrum.Controllers
 
             Plugin.Log.Debug($"FrameVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
             this.frameRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
-
-            /*string[] array = new string[]
-            {
-                "Environment/PlayersPlace",
-                "CustomPlatforms"
-            };
-            GameObject[] source = Resources.FindObjectsOfTypeAll<GameObject>();
-            string[] array2 = array;
-            for (int i = 0; i < array2.Length; i++)
-            {
-                string floorObjectName = array2[i];
-                GameObject gameObject = (from o in source
-                                         where o.GetFullPath(false) == floorObjectName
-                                         select o).FirstOrDefault<GameObject>();
-                if (gameObject)
-                {
-                    Plugin.Log.Debug("AdjustFloorHeight: " + floorObjectName + " found.");
-                    Vector3 a;
-                    if (this._initialPositions.TryGetValue(gameObject, out a))
-                    {
-                        Plugin.Log.Debug("AdjustFloorHeight: Found initial position " + a.ToString("F3"));
-                        gameObject.transform.localPosition = a;
-                    }
-                    else
-                    {
-                        Plugin.Log.Debug("AdjustFloorHeight: Register initial position " + gameObject.transform.localPosition.ToString("F3"));
-                        this._initialPositions[gameObject] = gameObject.transform.localPosition;
-                        this.frameRoot.transform.localPosition = gameObject.transform.localPosition;
-                        Plugin.Log.Debug("FrameVisualizer AdjustFloorHeight " + this.frameRoot.transform.localPosition.ToString("F3"));
-                    }
-                }
-
-            }*/
         }
 
         public GameObject Clone(GameObject go)
@@ -190,8 +157,6 @@ namespace NullponSpectrum.Controllers
             clone.transform.localScale = go.transform.localScale;
             return clone;
         }
-
-        private Dictionary<GameObject, Vector3> _initialPositions = new Dictionary<GameObject, Vector3>();
 
         private bool _disposedValue;
         private AudioSpectrum _audioSpectrum;
