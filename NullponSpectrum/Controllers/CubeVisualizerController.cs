@@ -14,7 +14,6 @@ namespace NullponSpectrum.Controllers
     public class CubeVisualizerController : IInitializable, IDisposable
     {
         private float scale = 2f;
-        private bool _disposedValue;
         private int size = 4;
 
         private List<GameObject> cubes = new List<GameObject>(4);
@@ -133,8 +132,12 @@ namespace NullponSpectrum.Controllers
             {
                 obj.SetActive(obj);
             }
+
+            Plugin.Log.Debug($"CubeVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
+            this.cubeRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
+        private bool _disposedValue;
         private IAudioTimeSource _timeSource;
         public IDifficultyBeatmap Currentmap { get; private set; }
         private AudioSpectrum _audioSpectrum;

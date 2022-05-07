@@ -1,9 +1,10 @@
-﻿using NullponSpectrum.AudioSpectrums;
+﻿using NullponSpectrum.Configuration;
+using NullponSpectrum.AudioSpectrums;
 using System;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 using System.Collections.Generic;
-using NullponSpectrum.Configuration;
 
 namespace NullponSpectrum.Controllers
 {
@@ -14,12 +15,11 @@ namespace NullponSpectrum.Controllers
     public class FrameVisualizerController : IInitializable, IDisposable
     {
         private float scale = 2f;
-        private bool _disposedValue;
         private int size = 4;
 
         private List<GameObject> cubes = new List<GameObject>(4);
         private List<Material> _materials = new List<Material>(4);
-        private GameObject frameRoot;
+        private GameObject frameRoot = new GameObject("frameVisualizerRoot");
 
         public enum FramePosition {
             Front,
@@ -65,7 +65,6 @@ namespace NullponSpectrum.Controllers
         }
 
 
-
         public void Initialize()
         {
             if (!PluginConfig.Instance.Enable)
@@ -78,10 +77,10 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (frameRoot == null)
-            {
-                this.frameRoot = new GameObject("frameVisualizerRoot");
-            }
+            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
+            this._audioSpectrum.fallSpeed = 0.3f;
+            this._audioSpectrum.sensibility = 10f;
+            this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             GameObject parent = new GameObject("framePlaySpace");
 
@@ -145,6 +144,9 @@ namespace NullponSpectrum.Controllers
             {
                 obj.SetActive(obj);
             }
+
+            Plugin.Log.Debug($"FrameVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
+            this.frameRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
         public GameObject Clone(GameObject go)
@@ -156,16 +158,14 @@ namespace NullponSpectrum.Controllers
             return clone;
         }
 
+        private bool _disposedValue;
         private AudioSpectrum _audioSpectrum;
 
         [Inject]
         public void Constructor(AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
-            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
-            this._audioSpectrum.fallSpeed = 0.3f;
-            this._audioSpectrum.sensibility = 10f;
-            this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
+            
         }
 
         protected virtual void Dispose(bool disposing)
