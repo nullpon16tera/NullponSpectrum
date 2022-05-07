@@ -44,17 +44,14 @@ namespace NullponSpectrum.Utilities
                                          select o).FirstOrDefault<GameObject>();
                 if (gameObject)
                 {
-                    Plugin.Log.Debug("AdjustFloorHeight: " + floorObjectName + " found.");
                     Vector3 a;
                     if (this._initialPositions.TryGetValue(gameObject, out a))
                     {
-                        Plugin.Log.Debug("AdjustFloorHeight: Found initial position " + a.ToString("F3"));
                         gameObject.transform.localPosition = a;
                         NullponSpectrumFloor.transform.localPosition = a;
                     }
                     else
                     {
-                        Plugin.Log.Debug("AdjustFloorHeight: Register initial position " + gameObject.transform.localPosition.ToString("F3"));
                         this._initialPositions[gameObject] = gameObject.transform.localPosition;
                         NullponSpectrumFloor.transform.localPosition = gameObject.transform.localPosition;
                     }

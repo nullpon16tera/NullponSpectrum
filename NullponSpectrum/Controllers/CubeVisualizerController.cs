@@ -133,7 +133,6 @@ namespace NullponSpectrum.Controllers
                 obj.SetActive(obj);
             }
 
-            Plugin.Log.Debug($"CubeVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
             this.cubeRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 

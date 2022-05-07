@@ -145,7 +145,6 @@ namespace NullponSpectrum.Controllers
                 obj.SetActive(obj);
             }
 
-            Plugin.Log.Debug($"FrameVisualizer FloorAdjust: {Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
             this.frameRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
