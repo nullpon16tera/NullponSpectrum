@@ -129,6 +129,7 @@
   <ItemGroup>
     <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
+    <Compile Include="Controllers\FenceVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />
     <Compile Include="GameObjectExtension.cs" />
     <Compile Include="Installers\NullponSpectrumGameInstaller.cs" />
