@@ -12,9 +12,8 @@ namespace NullponSpectrum.Controllers
     /// Monobehaviours (scripts) are added to GameObjects.
     /// For a full list of Messages a Monobehaviour can receive from the game, see https://docs.unity3d.com/ScriptReference/MonoBehaviour.html.
     /// </summary>
-    public class FanceVisualizerController : IInitializable, IDisposable
+    public class MeshVisualizerController : IInitializable, IDisposable
     {
-        private float scale = 2f;
         private int size = 16;
 
         private List<GameObject> leftPlane = new List<GameObject>(16);
@@ -22,9 +21,18 @@ namespace NullponSpectrum.Controllers
         private List<Material> _leftMaterials = new List<Material>(16);
         private List<Material> _rightMaterials = new List<Material>(16);
         private Material _lineMaterial;
-        private GameObject fenceRoot = new GameObject("fenceVisualizerRoot");
+        private Material _frameMaterial;
+        private GameObject meshVisualizerRoot = new GameObject("meshVisualizerRoot");
         private float leftHSV;
         private float rightHSV;
+
+        public enum FramePosition
+        {
+            Front,
+            Back,
+            Left,
+            Right,
+        };
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
@@ -32,7 +40,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.FanceVisualizer)
+            if (!PluginConfig.Instance.MeshVisualizer)
             {
                 return;
             }
@@ -68,11 +76,12 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (!PluginConfig.Instance.FanceVisualizer)
+            if (!PluginConfig.Instance.MeshVisualizer)
             {
                 return;
             }
 
+            // セイバーの色取得
             float leftH, leftS, leftV;
             float rightH, rightS, rightV;
 
@@ -81,12 +90,65 @@ namespace NullponSpectrum.Controllers
             this.leftHSV = leftH;
             this.rightHSV = rightH;
 
+
             this._audioSpectrum.Band = AudioSpectrum.BandType.TwentySixBand;
             this._audioSpectrum.fallSpeed = 0.3f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            // マテリアル生成
+
+            CreateFrameObject();
+            CreateMainObject();
+            CreateLineObject();
+
+            this.meshVisualizerRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+        }
+
+        private void CreateFrameObject()
+        {
+            GameObject parent = new GameObject("meshVisualizerFrame");
+
+            _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
+            _frameMaterial.SetColor("_Color  ", Color.white.ColorWithAlpha(1f));
+
+            for (int i = 0; i < 4; i++)
+            {
+                GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+                Transform cubeTransform = child.transform;
+                if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
+                {
+                    cubeTransform.localScale = new Vector3(3.015f, 0.015f, 0.015f);
+                }
+                if (i == (int)FramePosition.Left || i == (int)FramePosition.Right)
+                {
+                    cubeTransform.localScale = new Vector3(0.015f, 0.015f, 2.015f);
+                }
+                switch (i)
+                {
+                    case (int)FramePosition.Front:
+                        cubeTransform.localPosition = new Vector3(0f, 0.005f, 1f);
+                        break;
+                    case (int)FramePosition.Back:
+                        cubeTransform.localPosition = new Vector3(0f, 0.005f, -1f);
+                        break;
+                    case (int)FramePosition.Left:
+                        cubeTransform.localPosition = new Vector3(-1.5f, 0.005f, 0f);
+                        break;
+                    case (int)FramePosition.Right:
+                        cubeTransform.localPosition = new Vector3(1.5f, 0.005f, 0f);
+                        break;
+                    default:
+                        break;
+                }
+                child.transform.SetParent(parent.transform);
+            }
+            parent.transform.SetParent(meshVisualizerRoot.transform);
+        }
+
+        private void CreateMainObject()
+        {
+            // メインマテリアル生成
             for (int r = 0; r < size; r++)
             {
                 Material leftMaterial = new Material(Shader.Find("Custom/Glowing"));
@@ -104,6 +166,7 @@ namespace NullponSpectrum.Controllers
                 _rightMaterials.Add(rightMaterial);
             }
 
+            // メインオブジェクト生成
             for (int i = 0; i < size; i++)
             {
                 GameObject leftObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -121,12 +184,25 @@ namespace NullponSpectrum.Controllers
                 var rightMeshRenderer = rightObj.GetComponent<MeshRenderer>();
                 rightMeshRenderer.material = _rightMaterials[i];
 
-                leftObj.transform.SetParent(fenceRoot.transform);
-                rightObj.transform.SetParent(fenceRoot.transform);
+                leftObj.transform.SetParent(meshVisualizerRoot.transform);
+                rightObj.transform.SetParent(meshVisualizerRoot.transform);
             }
 
-            _lineMaterial = new Material(Shader.Find("Custom/Glowing"));
+            foreach (GameObject obj in leftPlane)
+            {
+                obj.SetActive(obj);
+            }
+            foreach (GameObject obj in rightPlane)
+            {
+                obj.SetActive(obj);
+            }
+        }
+
+        private void CreateLineObject()
+        {
+            // メッシュになるようのオブジェクト生成
             var lineColor = Color.HSVToRGB(0.5f, 0f, 0f);
+            _lineMaterial = new Material(Shader.Find("Custom/Glowing"));
             _lineMaterial.SetColor("_Color", lineColor.ColorWithAlpha(0f));
 
             for (int i = 0; i < 20; i++)
@@ -137,22 +213,9 @@ namespace NullponSpectrum.Controllers
                 lineTransform.localPosition = new Vector3(0f, 0.0051f, -1f + (0.1f * i));
                 MeshRenderer lineMeshRendere = line.GetComponent<MeshRenderer>();
                 lineMeshRendere.material = _lineMaterial;
-                line.transform.SetParent(fenceRoot.transform);
+                line.transform.SetParent(meshVisualizerRoot.transform);
                 line.SetActive(line);
             }
-
-            
-
-            foreach (GameObject obj in leftPlane)
-            {
-                obj.SetActive(obj);
-            }
-            foreach (GameObject obj in rightPlane)
-            {
-                obj.SetActive(obj);
-            }
-
-            this.fenceRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
         private bool _disposedValue;

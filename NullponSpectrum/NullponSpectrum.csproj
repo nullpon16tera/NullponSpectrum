@@ -134,7 +134,7 @@
   <ItemGroup>
     <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
-    <Compile Include="Controllers\FenceVisualizerController.cs" />
+    <Compile Include="Controllers\MeshVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />
     <Compile Include="GameObjectExtension.cs" />
     <Compile Include="Installers\NullponSpectrumGameInstaller.cs" />
@@ -168,6 +168,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\CubeVisualizer.png" />
     <EmbeddedResource Include="Resources\FrameVisualizer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MeshVisualizer.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

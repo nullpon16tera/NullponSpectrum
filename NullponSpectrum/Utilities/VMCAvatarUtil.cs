@@ -24,10 +24,11 @@ namespace NullponSpectrum.Utilities
             {
                 return;
             }
-            if (NullponSpectrumFloor.transform.localPosition.y == 0f)
+            /*if (NullponSpectrumFloor.transform.localPosition.y == 0f)
             {
                 return;
-            }
+            }*/
+            Plugin.Log.Debug($"FloorAdjust: " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
 
             AdjustFloorObject();
         }

@@ -34,11 +34,11 @@ namespace NullponSpectrum.Views
             set => PluginConfig.Instance.FrameVisualizer = value;
         }
 
-        [UIValue("FanceVisualizer")]
+        [UIValue("MeshVisualizer")]
         public bool FanceVisualizer
         {
-            get => PluginConfig.Instance.FanceVisualizer;
-            set => PluginConfig.Instance.FanceVisualizer = value;
+            get => PluginConfig.Instance.MeshVisualizer;
+            set => PluginConfig.Instance.MeshVisualizer = value;
         }
 
         protected override void OnDestroy()
