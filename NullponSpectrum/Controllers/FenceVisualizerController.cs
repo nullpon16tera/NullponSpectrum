@@ -67,8 +67,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            Plugin.Log.Debug($"FanceVisualizer: Enable");
-
             this._audioSpectrum.Band = AudioSpectrum.BandType.TwentySixBand;
             this._audioSpectrum.fallSpeed = 0.3f;
             this._audioSpectrum.sensibility = 10f;
