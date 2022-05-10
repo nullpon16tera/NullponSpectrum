@@ -7,6 +7,7 @@
 			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 				<modifier value='CubeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.CubeVisualizer.png' text='Cube Visualizer'></modifier>
 				<modifier value='FrameVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Frame Visualizer'></modifier>
+				<modifier value='FanceVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Fance Visualizer'></modifier>
 			</vertical>
 			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 				
