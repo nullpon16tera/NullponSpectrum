@@ -10,16 +10,21 @@ namespace NullponSpectrum.Utilities
     {
         public static bool IsInstallVMCAvatar { get; private set; }
 
-        public static GameObject NullponSpectrumFloor = new GameObject("NullponSpectrumFloor");
+        public static GameObject NullponSpectrumFloor;
 
         private void Awake()
         {
             IsInstallVMCAvatar = PluginManager.GetPluginFromId("VMCAvatar") != null;
+            NullponSpectrumFloor = new GameObject("NullponSpectrumFloor");
         }
 
         private void Start()
         {
             if (!IsInstallVMCAvatar)
+            {
+                return;
+            }
+            if (NullponSpectrumFloor.transform.localPosition.y == 0f)
             {
                 return;
             }
