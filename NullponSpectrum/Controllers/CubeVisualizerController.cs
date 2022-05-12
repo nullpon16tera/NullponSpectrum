@@ -42,7 +42,7 @@ namespace NullponSpectrum.Controllers
 
             var alpha = (this._audioSpectrum.PeakLevels[0] * size) % 1f;
             var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
-            var colorLerp = Mathf.Lerp(0.38f, 1f, alpha + alpha);
+            var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
             var peak = this._audioSpectrum.PeakLevels[0] * scale;
             var cubeSize = 0.2f + peak * 1.3f;
             var bpm = _timeSource.songTime * (60f / this.Currentmap.level.beatsPerMinute);
@@ -57,13 +57,13 @@ namespace NullponSpectrum.Controllers
                 cube.transform.localScale = new Vector3(cubeSize, cubeSize, cubeSize);
                 cube.transform.localRotation = Quaternion.Euler(rotateRog, rotateRog, rotateRog);
                 cube.transform.localPosition = cubePosition;
-                var color = Color.HSVToRGB(colorLerp, alphaLerp, alphaLerp);
 
+                var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
                 //meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(amp, 1f, peakAmp));
                 /*meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(0f, 1f, 0f));
                 meshRenderers[i].material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
                 meshRenderers[i].material.SetFloat("_TintColorAlpha", alpha);*/
-                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(0.25f + alpha));
+                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
                 
             }
 
@@ -82,6 +82,11 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
+
+            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
+            this._audioSpectrum.fallSpeed = 1f;
+            this._audioSpectrum.sensibility = 10f;
+            this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
@@ -147,10 +152,6 @@ namespace NullponSpectrum.Controllers
             this._timeSource = source;
             this.Currentmap = level;
             this._audioSpectrum = audioSpectrum;
-            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
-            this._audioSpectrum.fallSpeed = 0.3f;
-            this._audioSpectrum.sensibility = 10f;
-            this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
         }
 
         protected virtual void Dispose(bool disposing)

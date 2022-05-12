@@ -12,18 +12,18 @@ namespace NullponSpectrum.Controllers
     /// Monobehaviours (scripts) are added to GameObjects.
     /// For a full list of Messages a Monobehaviour can receive from the game, see https://docs.unity3d.com/ScriptReference/MonoBehaviour.html.
     /// </summary>
-    public class MeshVisualizerController : IInitializable, IDisposable
+    public class StripeVisualizerController : IInitializable, IDisposable
     {
-        private int size = 26;
+        private int size = 31;
 
-        private List<GameObject> leftPlane = new List<GameObject>(26);
-        private List<GameObject> rightPlane = new List<GameObject>(26);
-        private List<Material> _leftMaterials = new List<Material>(26);
-        private List<Material> _rightMaterials = new List<Material>(26);
+        private List<GameObject> leftPlane = new List<GameObject>(31);
+        private List<GameObject> rightPlane = new List<GameObject>(31);
+        private List<Material> _leftMaterials = new List<Material>(31);
+        private List<Material> _rightMaterials = new List<Material>(31);
         private Material _lineMaterial;
         private Material _frameMaterial;
         private Material _floorMaterial;
-        private GameObject meshVisualizerRoot = new GameObject("meshVisualizerRoot");
+        private GameObject stripeVisualizerRoot = new GameObject("stripeVisualizerRoot");
         private float leftHSV;
         private float rightHSV;
 
@@ -41,7 +41,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.MeshVisualizer)
+            if (!PluginConfig.Instance.StripeVisualizer)
             {
                 return;
             }
@@ -54,7 +54,6 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-
 
             for (int i = 0; i < _leftMaterials.Count; i++)
             {
@@ -75,7 +74,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (!PluginConfig.Instance.MeshVisualizer)
+            if (!PluginConfig.Instance.StripeVisualizer)
             {
                 return;
             }
@@ -90,18 +89,19 @@ namespace NullponSpectrum.Controllers
             this.rightHSV = rightH;
 
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.TwentySixBand;
+            this._audioSpectrum.Band = AudioSpectrum.BandType.ThirtyOneBand;
             this._audioSpectrum.numberOfSamples = 2048;
             this._audioSpectrum.fallSpeed = 1f;
-            this._audioSpectrum.sensibility = 0.01f;
+            this._audioSpectrum.sensibility = 0.001f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
+
 
             CreateFloorObject();
             CreateFrameObject();
             CreateMainObject();
-            CreateLineObject();
+            //CreateLineObject();
 
-            this.meshVisualizerRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.stripeVisualizerRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
         private void CreateFloorObject()
@@ -115,15 +115,15 @@ namespace NullponSpectrum.Controllers
             floor.transform.localScale = new Vector3(0.3f, 0.01f, 0.2f);
             floor.transform.localPosition = new Vector3(0f, 0.005f, 0f);
             floor.SetActive(floor);
-            floor.transform.SetParent(meshVisualizerRoot.transform);
+            floor.transform.SetParent(stripeVisualizerRoot.transform);
         }
 
         private void CreateFrameObject()
         {
-            GameObject parent = new GameObject("meshVisualizerFrame");
+            GameObject parent = new GameObject("stripeVisualizerFrame");
 
             _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _frameMaterial.SetColor("_Color  ", Color.white.ColorWithAlpha(1f));
+            _frameMaterial.SetColor("_Color", Color.white.ColorWithAlpha(1f));
 
             for (int i = 0; i < 4; i++)
             {
@@ -157,7 +157,7 @@ namespace NullponSpectrum.Controllers
                 }
                 child.transform.SetParent(parent.transform);
             }
-            parent.transform.SetParent(meshVisualizerRoot.transform);
+            parent.transform.SetParent(stripeVisualizerRoot.transform);
         }
 
         private void CreateMainObject()
@@ -166,14 +166,14 @@ namespace NullponSpectrum.Controllers
             for (int r = 0; r < size; r++)
             {
                 Material leftMaterial = new Material(Shader.Find("Custom/Glowing"));
-                leftMaterial.SetColor("_Color", Color.white.ColorWithAlpha(1f));
+                leftMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
                 leftMaterial.SetFloat("_EnableColorInstancing", 1f);
                 leftMaterial.SetFloat("_WhiteBoostType", 1f);
                 leftMaterial.SetFloat("_NoiseDithering", 1f);
                 _leftMaterials.Add(leftMaterial);
 
                 Material rightMaterial = new Material(Shader.Find("Custom/Glowing"));
-                rightMaterial.SetColor("_Color", Color.white.ColorWithAlpha(1f));
+                rightMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
                 rightMaterial.SetFloat("_EnableColorInstancing", 1f);
                 rightMaterial.SetFloat("_WhiteBoostType", 1f);
                 rightMaterial.SetFloat("_NoiseDithering", 1f);
@@ -185,21 +185,21 @@ namespace NullponSpectrum.Controllers
             {
                 GameObject leftObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform leftTransform = leftObj.transform;
-                leftTransform.localScale = new Vector3(0.0044f, 0.01f, 0.2f);
-                leftTransform.localPosition = new Vector3(-(0.03f + (0.057f * i)), 0.0051f, 0f);
+                leftTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
+                leftTransform.localPosition = new Vector3(-(0.0035f + (0.05f * i)), 0.0051f, 0f);
 
                 GameObject rightObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform rightTransform = rightObj.transform;
-                rightTransform.localScale = new Vector3(0.0044f, 0.01f, 0.2f);
-                rightTransform.localPosition = new Vector3((0.03f + (0.057f * i)), 0.0051f, 0f);
+                rightTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
+                rightTransform.localPosition = new Vector3((0.0035f + (0.05f * i)), 0.0051f, 0f);
 
                 var leftMeshRenderer = leftObj.GetComponent<MeshRenderer>();
                 leftMeshRenderer.material = _leftMaterials[i];
                 var rightMeshRenderer = rightObj.GetComponent<MeshRenderer>();
                 rightMeshRenderer.material = _rightMaterials[i];
 
-                leftObj.transform.SetParent(meshVisualizerRoot.transform);
-                rightObj.transform.SetParent(meshVisualizerRoot.transform);
+                leftObj.transform.SetParent(stripeVisualizerRoot.transform);
+                rightObj.transform.SetParent(stripeVisualizerRoot.transform);
             }
 
             foreach (GameObject obj in leftPlane)
@@ -227,7 +227,7 @@ namespace NullponSpectrum.Controllers
                 lineTransform.localPosition = new Vector3(0f, 0.0052f, -1f + (0.1f * i));
                 MeshRenderer lineMeshRendere = line.GetComponent<MeshRenderer>();
                 lineMeshRendere.material = _lineMaterial;
-                line.transform.SetParent(meshVisualizerRoot.transform);
+                line.transform.SetParent(stripeVisualizerRoot.transform);
                 line.SetActive(line);
             }
         }

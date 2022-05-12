@@ -52,14 +52,14 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < cubes.Count; i++)
             {
                 var peak = this._audioSpectrum.PeakLevels[i] * scale;
-                var frameSize = 0.25f + ((size - i) * 0.2f) + (peak * 1.1f);
+                var frameSize = 0.25f + ((size - i) * 0.2f) + (peak);
                 cubes[i].transform.localScale = new Vector3(frameSize, 1f, frameSize);
 
                 var alpha = (this._audioSpectrum.PeakLevels[i] * size) % 1f;
                 var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
-                var colorLerp = Mathf.Lerp(0.38f, 1f, alpha + alpha);
-                var color = Color.HSVToRGB(colorLerp, alphaLerp, alphaLerp);
-                _materials[i].SetColor("_Color", color.ColorWithAlpha(0.25f + alpha));
+                var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
+                var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
+                _materials[i].SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
             }
 
         }
@@ -78,7 +78,7 @@ namespace NullponSpectrum.Controllers
             }
 
             this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
-            this._audioSpectrum.fallSpeed = 0.3f;
+            this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
@@ -87,7 +87,7 @@ namespace NullponSpectrum.Controllers
             for (int r = 0; r < 4; r++)
             {
                 Material material = new Material(Shader.Find("Custom/Glowing"));
-                material.SetColor("_Color  ", Color.white.ColorWithAlpha(1f));
+                material.SetColor("_Color  ", Color.black.ColorWithAlpha(0f));
                 material.SetFloat("_EnableColorInstancing", 1f);
                 material.SetFloat("_WhiteBoostType", 1f);
                 material.SetFloat("_NoiseDithering", 1f);

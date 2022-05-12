@@ -35,10 +35,17 @@ namespace NullponSpectrum.Views
         }
 
         [UIValue("MeshVisualizer")]
-        public bool FanceVisualizer
+        public bool MeshVisualizer
         {
             get => PluginConfig.Instance.MeshVisualizer;
             set => PluginConfig.Instance.MeshVisualizer = value;
+        }
+
+        [UIValue("StripeVisualizer")]
+        public bool StripeVisualizer
+        {
+            get => PluginConfig.Instance.StripeVisualizer;
+            set => PluginConfig.Instance.StripeVisualizer = value;
         }
 
         protected override void OnDestroy()

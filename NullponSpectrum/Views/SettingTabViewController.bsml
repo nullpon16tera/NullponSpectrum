@@ -1,19 +1,33 @@
 ﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
-	<vertical pad-top='2'>
-		<horizontal child-expand-width='false' spacing='2'>
+	<vertical child-control-height='false' child-expand-height='false'>
+		<horizontal pad-bottom='6'>
 			<bool-setting text='Enable' value='enable' apply-on-change='true'></bool-setting>
 		</horizontal>
-		<horizontal child-expand-width='false' spacing='2'>
-			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
-				<modifier value='CubeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.CubeVisualizer.png' text='Cube Visualizer'></modifier>
-				<modifier value='FrameVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Frame Visualizer'></modifier>
-				<modifier value='MeshVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Mesh Visualizer'></modifier>
+		<horizontal child-control-width='false' child-expand-width='false' spacing='2' pad-left='-2'>
+			<vertical child-control-height='false' child-expand-height='false'>
+				<horizontal pad-bottom='2'>
+					<text text='4 Band' font-size='3.5' align='Center' />
+				</horizontal>
+				<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+					<modifier value='CubeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.CubeVisualizer.png' text='Cube Visualizer'></modifier>
+					<modifier value='FrameVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Frame Visualizer'></modifier>
+				</vertical>
 			</vertical>
-			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
-				
+			<vertical child-control-height='false' child-expand-height='false'>
+				<horizontal pad-bottom='2'>
+					<text text='26 Band' font-size='3.5' align='Center' />
+				</horizontal>
+				<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+					<modifier value='MeshVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Mesh Visualizer'></modifier>
+				</vertical>
 			</vertical>
-			<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
-				
+			<vertical child-control-height='false' child-expand-height='false'>
+				<horizontal pad-bottom='2'>
+					<text text='31 Band' font-size='3.5' align='Center' />
+				</horizontal>
+				<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+					<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
+				</vertical>
 			</vertical>
 		</horizontal>
 	</vertical>
