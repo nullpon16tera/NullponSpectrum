@@ -1,10 +1,11 @@
 ﻿using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
+using NullponSpectrum.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Zenject;
-using System.Collections.Generic;
 
 namespace NullponSpectrum.Controllers
 {
@@ -48,14 +49,21 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
+            var bandType = this._audioSpectrum.Band;
+
 
             for (int i = 0; i < cubes.Count; i++)
             {
-                var peak = this._audioSpectrum.PeakLevels[i] * scale;
+                int j = i;
+                if (bandType != AudioSpectrum.BandType.FourBand)
+                {
+                    j = i + 6;
+                }
+                var peak = this._audioSpectrum.PeakLevels[j] * scale;
                 var frameSize = 0.25f + ((size - i) * 0.2f) + (peak);
                 cubes[i].transform.localScale = new Vector3(frameSize, 1f, frameSize);
 
-                var alpha = (this._audioSpectrum.PeakLevels[i] * size) % 1f;
+                var alpha = (this._audioSpectrum.PeakLevels[j] * size) % 1f;
                 var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
                 var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
                 var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
@@ -87,7 +95,7 @@ namespace NullponSpectrum.Controllers
             for (int r = 0; r < 4; r++)
             {
                 Material material = new Material(Shader.Find("Custom/Glowing"));
-                material.SetColor("_Color  ", Color.black.ColorWithAlpha(0f));
+                material.SetColor("_Color", Color.black.ColorWithAlpha(0f));
                 material.SetFloat("_EnableColorInstancing", 1f);
                 material.SetFloat("_WhiteBoostType", 1f);
                 material.SetFloat("_NoiseDithering", 1f);
@@ -144,8 +152,8 @@ namespace NullponSpectrum.Controllers
             {
                 obj.SetActive(obj);
             }
-
-            this.frameRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+            
+            this.frameRoot.transform.SetParent(VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
         public GameObject Clone(GameObject go)

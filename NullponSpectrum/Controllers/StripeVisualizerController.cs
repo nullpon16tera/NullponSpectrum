@@ -1,10 +1,9 @@
 ﻿using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
-using System.Collections.Generic;
 
 namespace NullponSpectrum.Controllers
 {
@@ -41,7 +40,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.StripeVisualizer)
+            if (!PluginConfig.Instance.BarVisualizer)
             {
                 return;
             }
@@ -74,7 +73,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (!PluginConfig.Instance.StripeVisualizer)
+            if (!PluginConfig.Instance.BarVisualizer)
             {
                 return;
             }

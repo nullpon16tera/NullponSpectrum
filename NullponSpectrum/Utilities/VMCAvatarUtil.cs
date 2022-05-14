@@ -9,12 +9,15 @@ namespace NullponSpectrum.Utilities
     internal class VMCAvatarUtil : MonoBehaviour
     {
         public static bool IsInstallVMCAvatar { get; private set; }
+        private static bool FloorFlag = false;
 
         public static GameObject NullponSpectrumFloor;
+        public static Transform FloorTransform;
 
         private void Awake()
         {
             IsInstallVMCAvatar = PluginManager.GetPluginFromId("VMCAvatar") != null;
+            FloorFlag = false;
             NullponSpectrumFloor = new GameObject("NullponSpectrumFloor");
         }
 
@@ -24,9 +27,34 @@ namespace NullponSpectrum.Utilities
             {
                 return;
             }
-            
 
+
+            Plugin.Log.Debug($"AdjustFloor Before localPosition {NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
             AdjustFloorObject();
+            FloorTransform = NullponSpectrumFloor.transform;
+            Plugin.Log.Debug($"AdjustFloor After localPosition {NullponSpectrumFloor.transform.localPosition.ToString("F3")}");
+
+            if (NullponSpectrumFloor.transform.localPosition.y != 0f)
+            {
+                FloorFlag = true;
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            if (FloorFlag)
+            {
+                return;
+            }
+            if (NullponSpectrumFloor.transform.localPosition.y == 0f)
+            {
+                return;
+            }
+
+            Plugin.Log.Debug("FloorAdjust Flag ok.");
+            AdjustFloorObject();
+            FloorFlag = true;
+            FloorTransform = NullponSpectrumFloor.transform;
         }
 
         private void AdjustFloorObject()

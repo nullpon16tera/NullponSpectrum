@@ -3,8 +3,8 @@ using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.GameplaySetup;
 using BeatSaberMarkupLanguage.ViewControllers;
+using BeatSaberMarkupLanguage.Parser;
 using Zenject;
-
 
 namespace NullponSpectrum.Views
 {
@@ -13,39 +13,76 @@ namespace NullponSpectrum.Views
     {
         public string ResourceName => string.Join(".", this.GetType().Namespace, this.GetType().Name);
 
+        private static PluginConfig conf = PluginConfig.Instance;
+
+        [UIParams]
+        BSMLParserParams parserParams;
+
+        public void updateUI()
+        {
+            parserParams.EmitEvent("cancel");
+        }
+
         [UIValue("enable")]
         public bool Enable
         {
-            get => PluginConfig.Instance.Enable;
-            set => PluginConfig.Instance.Enable = value;
+            get => conf.Enable;
+            set => conf.Enable = value;
         }
 
         [UIValue("CubeVisualizer")]
         public bool CubeVisualizer
         {
-            get => PluginConfig.Instance.CubeVisualizer;
-            set => PluginConfig.Instance.CubeVisualizer = value;
+            get => conf.CubeVisualizer;
+            set => conf.CubeVisualizer = value;
         }
 
         [UIValue("FrameVisualizer")]
         public bool FrameVisualizer
         {
-            get => PluginConfig.Instance.FrameVisualizer;
-            set => PluginConfig.Instance.FrameVisualizer = value;
+            get => conf.FrameVisualizer;
+            set => conf.FrameVisualizer = value;
+        }
+
+        [UIValue("LineVisualizer")]
+        public bool LineVisualizer
+        {
+            get => conf.LineVisualizer;
+            set => conf.LineVisualizer = value;
         }
 
         [UIValue("MeshVisualizer")]
         public bool MeshVisualizer
         {
-            get => PluginConfig.Instance.MeshVisualizer;
-            set => PluginConfig.Instance.MeshVisualizer = value;
+            get => conf.MeshVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.BarVisualizer) conf.BarVisualizer = false;
+                }
+
+                conf.MeshVisualizer = value;
+
+                updateUI();
+            }
         }
 
-        [UIValue("StripeVisualizer")]
-        public bool StripeVisualizer
+        [UIValue("BarVisualizer")]
+        public bool BarVisualizer
         {
-            get => PluginConfig.Instance.StripeVisualizer;
-            set => PluginConfig.Instance.StripeVisualizer = value;
+            get => conf.BarVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                }
+
+                conf.BarVisualizer = value;
+
+                updateUI();
+            }
         }
 
         protected override void OnDestroy()

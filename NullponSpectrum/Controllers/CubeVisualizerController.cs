@@ -1,9 +1,9 @@
-﻿using NullponSpectrum.AudioSpectrums;
+﻿using NullponSpectrum.Configuration;
+using NullponSpectrum.AudioSpectrums;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
-using System.Collections.Generic;
-using NullponSpectrum.Configuration;
 
 namespace NullponSpectrum.Controllers
 {
@@ -40,10 +40,23 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            var alpha = (this._audioSpectrum.PeakLevels[0] * size) % 1f;
+            var bandType = this._audioSpectrum.Band;
+
+            int j = 0;
+
+            if (bandType == AudioSpectrum.BandType.TwentySixBand)
+            {
+                j = 6;
+            }
+            if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
+            {
+                j = 8;
+            }
+
+            var alpha = (this._audioSpectrum.PeakLevels[j] * size) % 1f;
             var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
             var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
-            var peak = this._audioSpectrum.PeakLevels[0] * scale;
+            var peak = this._audioSpectrum.PeakLevels[j] * scale;
             var cubeSize = 0.2f + peak * 1.3f;
             var bpm = _timeSource.songTime * (60f / this.Currentmap.level.beatsPerMinute);
             
@@ -92,7 +105,7 @@ namespace NullponSpectrum.Controllers
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
             cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
-            cubeMaterial.SetColor("_Color  ", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
+            cubeMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
             cubeMaterial.SetFloat("_EnableColorInstancing", 1f);
             cubeMaterial.SetFloat("_WhiteBoostType", 1f);
             cubeMaterial.SetFloat("_NoiseDithering", 1f);

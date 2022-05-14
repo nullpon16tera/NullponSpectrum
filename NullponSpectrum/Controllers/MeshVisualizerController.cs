@@ -1,10 +1,9 @@
 ﻿using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
-using System.Collections.Generic;
 
 namespace NullponSpectrum.Controllers
 {

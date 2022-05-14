@@ -11,8 +11,9 @@ namespace NullponSpectrum.Configuration
         public virtual bool Enable { get; set; } = false; // Must be 'virtual' if you want BSIPA to detect a value change and save the config automatically.
         public virtual bool CubeVisualizer { get; set; } = false;
         public virtual bool FrameVisualizer { get; set; } = false;
+        public virtual bool LineVisualizer { get; set; } = false;
         public virtual bool MeshVisualizer { get; set; } = false;
-        public virtual bool StripeVisualizer { get; set; } = false;
+        public virtual bool BarVisualizer { get; set; } = false;
 
         public event Action<PluginConfig> OnReloaded;
 
