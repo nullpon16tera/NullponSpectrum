@@ -177,5 +177,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\BarVisualizer.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LineVisualizer.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
