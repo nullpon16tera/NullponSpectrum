@@ -27,7 +27,7 @@
 					<text text='31 Band' font-size='3.5' align='Center' />
 				</horizontal>
 				<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
-					<modifier value='BarVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.BarVisualizer.png' text='Bar Visualizer'></modifier>
+					<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Bar Visualizer'></modifier>
 				</vertical>
 			</vertical>
 		</horizontal>

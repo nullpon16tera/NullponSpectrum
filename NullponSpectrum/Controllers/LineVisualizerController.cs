@@ -15,7 +15,6 @@ namespace NullponSpectrum.Controllers
     public class LineVisualizerController : IInitializable, IDisposable
     {
         private Transform floorTransform;
-        private List<GameObject> lines = new List<GameObject>(4);
         private GameObject lineVisualizer = new GameObject("lineVisualizer");
         private LineRenderer lineRenderer;
         private Vector3[] linePositions = new Vector3[]
@@ -27,7 +26,7 @@ namespace NullponSpectrum.Controllers
             new Vector3(0.3f, 0f, 0f),
             new Vector3(0.495f, 0f, 0f)
         };
-        private Material lineMaterial;
+
         private GameObject lineVisualizerRoot = new GameObject("lineVisualizerRoot");
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
@@ -59,11 +58,13 @@ namespace NullponSpectrum.Controllers
                 {
                     continue;
                 }
+
                 int j = i - 1;
                 if (bandType != AudioSpectrum.BandType.FourBand)
                 {
                     j = i + 4;
                 }
+
                 var alpha = this._audioSpectrum.PeakLevels[j] * 5f;
                 var line = linePositions[i];
                 line.z = alpha;
@@ -73,9 +74,6 @@ namespace NullponSpectrum.Controllers
                     continue;
                 }
                 lineRenderer.SetPosition(i, line);
-
-                /*var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
-                lineMaterial.SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));*/
 
             }
 
@@ -101,10 +99,6 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.fallSpeed = 0.3f;
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
-
-            // Material 生成
-            lineMaterial = new Material(Shader.Find("Custom/Glowing"));
-            lineMaterial.SetColor("_Color", Color.white.ColorWithAlpha(0f));
 
             lineVisualizer.transform.localPosition = new Vector3(0f, 0.005f, -0.8f);
             lineVisualizer.transform.localScale = new Vector3(3f, 0.05f, 2f);

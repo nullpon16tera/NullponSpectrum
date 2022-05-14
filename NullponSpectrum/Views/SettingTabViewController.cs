@@ -59,7 +59,7 @@ namespace NullponSpectrum.Views
             {
                 if (value)
                 {
-                    if (conf.BarVisualizer) conf.BarVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -68,10 +68,10 @@ namespace NullponSpectrum.Views
             }
         }
 
-        [UIValue("BarVisualizer")]
-        public bool BarVisualizer
+        [UIValue("StripeVisualizer")]
+        public bool StripeVisualizer
         {
-            get => conf.BarVisualizer;
+            get => conf.StripeVisualizer;
             set
             {
                 if (value)
@@ -79,7 +79,7 @@ namespace NullponSpectrum.Views
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                 }
 
-                conf.BarVisualizer = value;
+                conf.StripeVisualizer = value;
 
                 updateUI();
             }

@@ -13,7 +13,7 @@ namespace NullponSpectrum.Configuration
         public virtual bool FrameVisualizer { get; set; } = false;
         public virtual bool LineVisualizer { get; set; } = false;
         public virtual bool MeshVisualizer { get; set; } = false;
-        public virtual bool BarVisualizer { get; set; } = false;
+        public virtual bool StripeVisualizer { get; set; } = false;
 
         public event Action<PluginConfig> OnReloaded;
 

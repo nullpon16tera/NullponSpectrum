@@ -175,7 +175,7 @@
     <EmbeddedResource Include="Resources\MeshVisualizer.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\BarVisualizer.png" />
+    <EmbeddedResource Include="Resources\StripeVisualizer.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\LineVisualizer.png" />

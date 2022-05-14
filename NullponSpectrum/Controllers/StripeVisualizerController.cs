@@ -40,7 +40,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.BarVisualizer)
+            if (!PluginConfig.Instance.StripeVisualizer)
             {
                 return;
             }
@@ -73,7 +73,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (!PluginConfig.Instance.BarVisualizer)
+            if (!PluginConfig.Instance.StripeVisualizer)
             {
                 return;
             }
