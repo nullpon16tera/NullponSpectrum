@@ -17,6 +17,7 @@ namespace NullponSpectrum.Controllers
         private int size = 4;
 
         private List<GameObject> cubes = new List<GameObject>(4);
+        private Material[] cubeMaterials = new Material[2];
         private Material cubeMaterial;
         private GameObject cubeRoot = new GameObject("cubeVisualizerRoot");
 
@@ -53,7 +54,7 @@ namespace NullponSpectrum.Controllers
                 j = 8;
             }
 
-            var alpha = (this._audioSpectrum.PeakLevels[j] * size) % 1f;
+            var alpha = (this._audioSpectrum.PeakLevels[j] * 4f) % 1f;
             var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
             var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
             var peak = this._audioSpectrum.PeakLevels[j] * scale;
@@ -76,8 +77,16 @@ namespace NullponSpectrum.Controllers
                 /*meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(0f, 1f, 0f));
                 meshRenderers[i].material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
                 meshRenderers[i].material.SetFloat("_TintColorAlpha", alpha);*/
-                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
-                
+                //cubeMaterial.SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
+                //cubeMaterial.SetFloat("_EnableColorInstancing ", 1f);
+                cubeMaterials[0].SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
+                cubeMaterials[0].SetFloat("_SpectrogramScale", cubeSize);
+                //cubeMaterials[1].SetColor("_TintColor", color);
+                cubeMaterials[1].SetFloat("_Metallic", (0.01f + alpha));
+                cubeMaterials[1].SetFloat("_Smoothness", (0.01f + alpha));
+                cubeMaterials[1].SetFloat("_ReflectionIntensity", (0.01f + alpha));
+                cubeMaterials[1].SetFloat("_BumpIntensity", 1f);
+                //cubeMaterials[1].SetColor("_Color", Color.black.ColorWithAlpha(0.01f + alpha));
             }
 
         }
@@ -104,11 +113,27 @@ namespace NullponSpectrum.Controllers
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
-            cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
+            // Custom/Glowing
+            // Custom/UnlitSpectrogram
+            /*cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
             cubeMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
             cubeMaterial.SetFloat("_EnableColorInstancing", 1f);
-            cubeMaterial.SetFloat("_WhiteBoostType", 1f);
-            cubeMaterial.SetFloat("_NoiseDithering", 1f);
+            cubeMaterial.SetFloat("_WhiteBoostType", 0f);
+            cubeMaterial.SetFloat("_NoiseDithering", 0f);*/
+
+            cubeMaterials[0] = new Material(Shader.Find("Custom/UnlitSpectrogram"));
+            cubeMaterials[0].SetColor("_Color", Color.white.ColorWithAlpha(1f));
+            cubeMaterials[1] = new Material(Shader.Find("Custom/Mirror"));
+            cubeMaterials[1].SetColor("_TintColor", Color.black.ColorWithAlpha(0f));
+            cubeMaterials[1].SetFloat("_Metallic", 1f);
+            cubeMaterials[1].SetFloat("_Smoothness", 0f);
+            cubeMaterials[1].SetFloat("_EnableSpecular", 1f);
+            cubeMaterials[1].SetFloat("_SpecularIntensity", 0f);
+            cubeMaterials[1].SetFloat("_ReflectionIntensity", 1f);
+            cubeMaterials[1].SetFloat("_EnableLightmap", 1f);
+            cubeMaterials[1].SetFloat("_EnableDiffuse", 1f);
+            //cubeMaterials[2] = new Material(Shader.Find("Custom/CustomParticles"));
+            //cubeMaterials[1].SetColor("_Color", Color.white.ColorWithAlpha(0.1f));
             //childMeshRenderer.material.SetColor("_Color", Color.HSVToRGB(1f, 1f, 1f));
             //childMeshRenderer.material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
             //childMeshRenderer.material.SetFloat("_TintColorAlpha", 0f);
@@ -117,7 +142,7 @@ namespace NullponSpectrum.Controllers
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 MeshRenderer childMeshRenderer = child.GetComponent<MeshRenderer>();
-                childMeshRenderer.material = cubeMaterial;
+                childMeshRenderer.materials = cubeMaterials;
                 
                 Transform cubeTransform = child.transform;
                 cubeTransform.localPosition = new Vector3(0f, 0.3f, 0f);

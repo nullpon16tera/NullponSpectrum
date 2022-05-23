@@ -135,6 +135,8 @@
     <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
     <Compile Include="Controllers\LineVisualizerController.cs" />
+    <Compile Include="Controllers\PlatformController.cs" />
+    <Compile Include="Controllers\PlayersPlaceController.cs" />
     <Compile Include="Controllers\StripeVisualizerController.cs" />
     <Compile Include="Controllers\MeshVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />

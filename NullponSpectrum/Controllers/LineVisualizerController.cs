@@ -54,9 +54,13 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < linePositions.Length; i++)
             {
-                if (i == 0 || linePositions.Length - 1 <= i)
+                if (i == 0)
                 {
                     continue;
+                }
+                if (linePositions.Length - 1 <= i)
+                {
+                    break;
                 }
 
                 int j = i - 1;
@@ -69,10 +73,6 @@ namespace NullponSpectrum.Controllers
                 var line = linePositions[i];
                 line.z = alpha;
                 line.y = floorTransform.localPosition.y;
-                if (linePositions.Length - 1 <= i)
-                {
-                    continue;
-                }
                 lineRenderer.SetPosition(i, line);
 
             }

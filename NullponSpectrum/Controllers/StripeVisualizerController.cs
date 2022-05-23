@@ -1,5 +1,6 @@
 ﻿using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
+using NullponSpectrum.Utilities;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,19 +21,9 @@ namespace NullponSpectrum.Controllers
         private List<Material> _leftMaterials = new List<Material>(31);
         private List<Material> _rightMaterials = new List<Material>(31);
         private Material _lineMaterial;
-        private Material _frameMaterial;
-        private Material _floorMaterial;
         private GameObject stripeVisualizerRoot = new GameObject("stripeVisualizerRoot");
         private float leftHSV;
         private float rightHSV;
-
-        public enum FramePosition
-        {
-            Front,
-            Back,
-            Left,
-            Right,
-        };
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
@@ -56,11 +47,11 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < _leftMaterials.Count; i++)
             {
-                var alpha = (this._audioSpectrum.PeakLevels[((size - 1) - i)] * 20f) % 1f;
+                var alpha = (this._audioSpectrum.Levels[((size - 1) - i)] * 20f) % 1f;
                 var leftColor = Color.HSVToRGB(leftHSV, 1f, alpha);
                 var rightColor = Color.HSVToRGB(rightHSV, 1f, alpha);
-                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(alpha));
-                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(alpha));
+                _leftMaterials[i].SetColor("_TintColor", leftColor.ColorWithAlpha(alpha));
+                _rightMaterials[i].SetColor("_TintColor", rightColor.ColorWithAlpha(alpha));
             }
 
         }
@@ -94,88 +85,26 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 0.001f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-
-            CreateFloorObject();
-            CreateFrameObject();
             CreateMainObject();
             //CreateLineObject();
 
-            this.stripeVisualizerRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.stripeVisualizerRoot.transform.SetParent(VMCAvatarUtil.NullponSpectrumFloor.transform);
         }
 
-        private void CreateFloorObject()
-        {
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            MeshRenderer floorRenderer = floor.GetComponent<MeshRenderer>();
-            _floorMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _floorMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
-            floorRenderer.material = _floorMaterial;
-
-            floor.transform.localScale = new Vector3(0.3f, 0.01f, 0.2f);
-            floor.transform.localPosition = new Vector3(0f, 0.005f, 0f);
-            floor.SetActive(floor);
-            floor.transform.SetParent(stripeVisualizerRoot.transform);
-        }
-
-        private void CreateFrameObject()
-        {
-            GameObject parent = new GameObject("stripeVisualizerFrame");
-
-            _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _frameMaterial.SetColor("_Color", Color.white.ColorWithAlpha(1f));
-
-            for (int i = 0; i < 4; i++)
-            {
-                GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-                Transform cubeTransform = child.transform;
-                if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
-                {
-                    cubeTransform.localScale = new Vector3(3.015f, 0.015f, 0.015f);
-                }
-                if (i == (int)FramePosition.Left || i == (int)FramePosition.Right)
-                {
-                    cubeTransform.localScale = new Vector3(0.015f, 0.015f, 2.015f);
-                }
-                switch (i)
-                {
-                    case (int)FramePosition.Front:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, 1f);
-                        break;
-                    case (int)FramePosition.Back:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, -1f);
-                        break;
-                    case (int)FramePosition.Left:
-                        cubeTransform.localPosition = new Vector3(-1.5f, 0.005f, 0f);
-                        break;
-                    case (int)FramePosition.Right:
-                        cubeTransform.localPosition = new Vector3(1.5f, 0.005f, 0f);
-                        break;
-                    default:
-                        break;
-                }
-                child.transform.SetParent(parent.transform);
-            }
-            parent.transform.SetParent(stripeVisualizerRoot.transform);
-        }
 
         private void CreateMainObject()
         {
             // メインマテリアル生成
             for (int r = 0; r < size; r++)
             {
-                Material leftMaterial = new Material(Shader.Find("Custom/Glowing"));
-                leftMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                leftMaterial.SetFloat("_EnableColorInstancing", 1f);
-                leftMaterial.SetFloat("_WhiteBoostType", 1f);
-                leftMaterial.SetFloat("_NoiseDithering", 1f);
+                Material leftMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+                leftMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+                leftMaterial.SetFloat("_Brightness", 1f);
                 _leftMaterials.Add(leftMaterial);
 
-                Material rightMaterial = new Material(Shader.Find("Custom/Glowing"));
-                rightMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                rightMaterial.SetFloat("_EnableColorInstancing", 1f);
-                rightMaterial.SetFloat("_WhiteBoostType", 1f);
-                rightMaterial.SetFloat("_NoiseDithering", 1f);
+                Material rightMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+                rightMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+                rightMaterial.SetFloat("_Brightness", 1f);
                 _rightMaterials.Add(rightMaterial);
             }
 
@@ -185,12 +114,12 @@ namespace NullponSpectrum.Controllers
                 GameObject leftObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform leftTransform = leftObj.transform;
                 leftTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
-                leftTransform.localPosition = new Vector3(-(0.0035f + (0.05f * i)), 0.0051f, 0f);
+                leftTransform.localPosition = new Vector3(-(0.0035f + (0.049f * i)), 0.0051f, 0f);
 
                 GameObject rightObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform rightTransform = rightObj.transform;
                 rightTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
-                rightTransform.localPosition = new Vector3((0.0035f + (0.05f * i)), 0.0051f, 0f);
+                rightTransform.localPosition = new Vector3((0.0035f + (0.049f * i)), 0.0051f, 0f);
 
                 var leftMeshRenderer = leftObj.GetComponent<MeshRenderer>();
                 leftMeshRenderer.material = _leftMaterials[i];

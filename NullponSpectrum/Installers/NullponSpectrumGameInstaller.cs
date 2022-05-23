@@ -14,6 +14,8 @@ namespace NullponSpectrum.Installers
         {
             this.Container.BindInterfacesAndSelfTo<Utilities.VMCAvatarUtil>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
             this.Container.BindInterfacesAndSelfTo<AudioSpectrum>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum))).AsCached();
+            this.Container.BindInterfacesAndSelfTo<PlatformController>().AsCached().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<PlayersPlaceController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<CubeVisualizerController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<FrameVisualizerController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
