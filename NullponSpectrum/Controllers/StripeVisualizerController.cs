@@ -100,7 +100,7 @@ namespace NullponSpectrum.Controllers
             CreateMainObject();
             //CreateLineObject();
 
-            this.stripeVisualizerRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.stripeVisualizerRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private void CreateFloorObject()

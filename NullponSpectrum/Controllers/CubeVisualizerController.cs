@@ -151,7 +151,7 @@ namespace NullponSpectrum.Controllers
                 obj.SetActive(obj);
             }
 
-            this.cubeRoot.transform.SetParent(Utilities.VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.cubeRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private bool _disposedValue;

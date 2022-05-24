@@ -153,7 +153,7 @@ namespace NullponSpectrum.Controllers
                 obj.SetActive(obj);
             }
             
-            this.frameRoot.transform.SetParent(VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.frameRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         public GameObject Clone(GameObject go)

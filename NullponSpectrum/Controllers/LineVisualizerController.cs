@@ -20,10 +20,10 @@ namespace NullponSpectrum.Controllers
         private Vector3[] linePositions = new Vector3[]
         {
             new Vector3(-0.495f, 0f, 0f),
-            new Vector3(-0.3f, 0f, 0f),
-            new Vector3(-0.1f, 0f, 0f),
-            new Vector3(0.1f, 0f, 0f),
-            new Vector3(0.3f, 0f, 0f),
+            new Vector3(-0.3f, 0.1f, 0f),
+            new Vector3(-0.1f, 0.1f, 0f),
+            new Vector3(0.1f, 0.1f, 0f),
+            new Vector3(0.3f, 0.1f, 0f),
             new Vector3(0.495f, 0f, 0f)
         };
 
@@ -93,14 +93,14 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this.floorTransform = VMCAvatarUtil.NullponSpectrumFloor.transform;
+            this.floorTransform = FloorAdjustorUtil.NullponSpectrumFloor.transform;
 
             this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 0.3f;
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            lineVisualizer.transform.localPosition = new Vector3(0f, 0.005f, -0.8f);
+            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
             lineVisualizer.transform.localScale = new Vector3(3f, 0.05f, 2f);
             lineVisualizer.transform.SetParent(this.lineVisualizerRoot.transform);
 
@@ -108,6 +108,7 @@ namespace NullponSpectrum.Controllers
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
             lineRenderer.useWorldSpace = false;
             lineRenderer.positionCount = linePositions.Length;
+            lineRenderer.alignment = LineAlignment.View;
             lineRenderer.startWidth = 0.025f;
             lineRenderer.endWidth = 0.025f;
             lineRenderer.startColor = this._colorScheme.saberAColor;
@@ -117,7 +118,7 @@ namespace NullponSpectrum.Controllers
             
             this.lineVisualizer.SetActive(this.lineVisualizer);
             
-            this.lineVisualizerRoot.transform.SetParent(VMCAvatarUtil.NullponSpectrumFloor.transform);
+            this.lineVisualizerRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private bool _disposedValue;
