@@ -30,4 +30,4 @@ VMCAvatarの床調整に対応しました。
 
 ### 31 Band
 
-- BarVisualizer
+- StripeVisualizer
