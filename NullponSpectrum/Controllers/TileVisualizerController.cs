@@ -15,10 +15,6 @@ namespace NullponSpectrum.Controllers
     {
         private int size = 6;
 
-        private List<GameObject> leftPlaneA = new List<GameObject>(6);
-        private List<GameObject> rightPlaneA = new List<GameObject>(6);
-        private List<GameObject> leftPlaneB = new List<GameObject>(6);
-        private List<GameObject> rightPlaneB = new List<GameObject>(6);
         private List<Material> _leftMaterials = new List<Material>(6);
         private List<Material> _rightMaterials = new List<Material>(6);
         private Material _lineMaterial;
