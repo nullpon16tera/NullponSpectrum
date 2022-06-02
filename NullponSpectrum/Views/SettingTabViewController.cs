@@ -51,6 +51,24 @@ namespace NullponSpectrum.Views
             set => conf.LineVisualizer = value;
         }
 
+        [UIValue("TileVisualizer")]
+        public bool TileVisualizer
+        {
+            get => conf.TileVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                }
+
+                conf.TileVisualizer = value;
+
+                updateUI();
+            }
+        }
+
         [UIValue("MeshVisualizer")]
         public bool MeshVisualizer
         {
@@ -60,6 +78,7 @@ namespace NullponSpectrum.Views
                 if (value)
                 {
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -77,6 +96,7 @@ namespace NullponSpectrum.Views
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
                 }
 
                 conf.StripeVisualizer = value;

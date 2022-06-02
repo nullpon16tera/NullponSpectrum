@@ -138,6 +138,7 @@
     <Compile Include="Controllers\StripeVisualizerController.cs" />
     <Compile Include="Controllers\MeshVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />
+    <Compile Include="Controllers\TileVisualizerController.cs" />
     <Compile Include="GameObjectExtension.cs" />
     <Compile Include="Installers\NullponSpectrumGameInstaller.cs" />
     <Compile Include="Installers\NullponSpectrumMenuInstaller.cs" />
