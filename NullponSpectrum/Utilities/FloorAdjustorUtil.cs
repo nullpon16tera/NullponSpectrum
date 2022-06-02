@@ -38,14 +38,14 @@ namespace NullponSpectrum.Utilities
         }
 
         // VMCAvatar用にキャリブレーションし直したときのを用意したけど、要らないかもしれないからコメントアウトしとく
-        /*private void FixedUpdate()
+        private void FixedUpdate()
         {
             if (FloorFlag)
             {
                 return;
             }
             StartCoroutine(FloorAdjust());
-        }*/
+        }
 
         private IEnumerator FloorAdjust()
         {
