@@ -55,9 +55,14 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < cubes.Count; i++)
             {
                 int j = i;
-                if (bandType != AudioSpectrum.BandType.FourBand)
+
+                if (bandType == AudioSpectrum.BandType.TwentySixBand)
                 {
                     j = i + 6;
+                }
+                if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
+                {
+                    j = i + 8;
                 }
                 var peak = this._audioSpectrum.PeakLevels[j] * scale;
                 var frameSize = 0.25f + ((size - i) * 0.2f) + (peak);

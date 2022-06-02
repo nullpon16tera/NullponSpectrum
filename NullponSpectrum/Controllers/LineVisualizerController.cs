@@ -60,9 +60,14 @@ namespace NullponSpectrum.Controllers
                 }
 
                 int j = i - 1;
-                if (bandType != AudioSpectrum.BandType.FourBand)
+
+                if (bandType == AudioSpectrum.BandType.TwentySixBand)
                 {
                     j = i + 4;
+                }
+                if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
+                {
+                    j = i + 6;
                 }
 
                 var alpha = this._audioSpectrum.PeakLevels[j] * 5f;
