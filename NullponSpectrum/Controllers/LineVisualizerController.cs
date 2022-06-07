@@ -105,10 +105,6 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
-            lineVisualizer.transform.localScale = new Vector3(3f, 0.05f, 2f);
-            lineVisualizer.transform.SetParent(this.lineVisualizerRoot.transform);
-
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
             lineRenderer.useWorldSpace = false;
@@ -120,9 +116,22 @@ namespace NullponSpectrum.Controllers
             lineRenderer.endColor = this._colorScheme.saberBColor;
             lineRenderer.SetPositions(linePositions);
 
-            
-            this.lineVisualizer.SetActive(this.lineVisualizer);
-            
+            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
+            lineVisualizer.transform.localScale = new Vector3(3f, 0.05f, 2f);
+            lineVisualizer.transform.SetParent(this.lineVisualizerRoot.transform);
+
+            if (PluginConfig.Instance.isFloorHeight)
+            {
+                var rootPosition = lineVisualizerRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+
+                var lineHeight = lineVisualizer.transform.localPosition;
+                lineHeight.y += PluginConfig.Instance.floorHeight * 0.01f;
+                lineVisualizer.transform.localPosition = lineHeight;
+
+                lineVisualizerRoot.transform.localPosition = rootPosition;
+            }
+
             this.lineVisualizerRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 

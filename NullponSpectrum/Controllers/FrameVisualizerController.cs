@@ -157,7 +157,14 @@ namespace NullponSpectrum.Controllers
             {
                 obj.SetActive(obj);
             }
-            
+
+            if (PluginConfig.Instance.isFloorHeight)
+            {
+                var rootPosition = frameRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+                frameRoot.transform.localPosition = rootPosition;
+            }
+
             this.frameRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 

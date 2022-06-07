@@ -100,6 +100,13 @@ namespace NullponSpectrum.Controllers
             CreateMainObject();
             CreateLineObject();
 
+            if (PluginConfig.Instance.isFloorHeight)
+            {
+                var rootPosition = meshVisualizerRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+                meshVisualizerRoot.transform.localPosition = rootPosition;
+            }
+
             this.meshVisualizerRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 

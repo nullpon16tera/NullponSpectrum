@@ -30,6 +30,20 @@ namespace NullponSpectrum.Views
             set => conf.Enable = value;
         }
 
+        [UIValue("isFloorHeight")]
+        public bool isFloorHeight
+        {
+            get => conf.isFloorHeight;
+            set => conf.isFloorHeight = value;
+        }
+
+        [UIValue("floorHeight")]
+        public float floorHeight
+        {
+            get => conf.floorHeight;
+            set => conf.floorHeight = value;
+        }
+
         [UIValue("CubeVisualizer")]
         public bool CubeVisualizer
         {

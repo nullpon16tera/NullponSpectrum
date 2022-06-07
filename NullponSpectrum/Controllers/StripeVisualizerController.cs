@@ -100,6 +100,13 @@ namespace NullponSpectrum.Controllers
             CreateMainObject();
             //CreateLineObject();
 
+            if (PluginConfig.Instance.isFloorHeight)
+            {
+                var rootPosition = stripeVisualizerRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+                stripeVisualizerRoot.transform.localPosition = rootPosition;
+            }
+
             this.stripeVisualizerRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 

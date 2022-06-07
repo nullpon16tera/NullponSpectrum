@@ -146,9 +146,11 @@ namespace NullponSpectrum.Controllers
                 cubes.Add(child);
             }
 
-            foreach (GameObject obj in cubes)
+            if (PluginConfig.Instance.isFloorHeight)
             {
-                obj.SetActive(obj);
+                var rootPosition = cubeRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+                cubeRoot.transform.localPosition = rootPosition;
             }
 
             this.cubeRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);

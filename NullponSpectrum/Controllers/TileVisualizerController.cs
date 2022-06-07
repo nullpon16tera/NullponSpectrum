@@ -1,5 +1,6 @@
 ﻿using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
+using NullponSpectrum.Utilities;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -92,13 +93,22 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
+            
+
 
             CreateFloorObject();
             CreateFrameObject();
             CreateMainObject();
             CreateLineObject();
 
-            this.tileVisualizerRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
+            if (PluginConfig.Instance.isFloorHeight)
+            {
+                var rootPosition = tileVisualizerRoot.transform.localPosition;
+                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
+                tileVisualizerRoot.transform.localPosition = rootPosition;
+            }
+
+            this.tileVisualizerRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private void CreateFloorObject()
