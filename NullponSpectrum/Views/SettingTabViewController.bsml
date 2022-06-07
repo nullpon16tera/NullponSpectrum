@@ -7,7 +7,7 @@
 			<vertical child-control-height='false' child-expand-height='false'>
 				<bool-setting value='isFloorHeight' apply-on-change='true' text='Enable Floor Height' hover-hint='Enable Adjust floor height.'></bool-setting>
 				<horizontal>
-					<slider-setting value='floorHeight' apply-on-change='true' text='Height' hover-hint='The default value is 0.01' min='0' max='1' increment='0.05'></slider-setting>
+					<slider-setting value='floorHeight' apply-on-change='true' text='Floor Height' hover-hint='The default value is 0.01' min='0' max='1' increment='0.05'></slider-setting>
 				</horizontal>
 			</vertical>
 		</horizontal>

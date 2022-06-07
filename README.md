@@ -3,7 +3,8 @@
 対応BeatSaberバージョン：　1.20.0～1.22.1
 
 プレイエリアに、音に合わせて動くオブジェクトを追加します。  
-VMCAvatarとNalulunaAvatarsの床調整に対応しました。
+VMCAvatarとNalulunaAvatarsの床調整に対応しました。  
+CustomPlatforms用に床オブジェクトの高さを調整できる設定を追加しました。
 
 ## 依存Mod
 
