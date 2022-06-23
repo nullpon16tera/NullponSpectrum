@@ -33,3 +33,4 @@ CustomPlatforms用に床オブジェクトの高さを調整できる設定を�
 ### 31 Band
 
 - StripeVisualizer
+- SphereVisualizer

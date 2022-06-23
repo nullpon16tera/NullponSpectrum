@@ -185,5 +185,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\TileVisualizer.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\SphereVisualizer.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
