@@ -51,19 +51,22 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 var alpha = (this._audioSpectrum.PeakLevels[i] * 10f) % 1f;
-                var leftColor = i % 2 == 0 ? Color.HSVToRGB(leftHSV, 1f, alpha) : Color.HSVToRGB(rightHSV, 1f, alpha);
-                var rightColor = i % 2 == 0 ? Color.HSVToRGB(rightHSV, 1f, alpha) : Color.HSVToRGB(leftHSV, 1f, alpha);
-                leftSphereMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(alpha));
-                rightSphereMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(alpha));
+                //var leftColor = i % 2 == 0 ? Color.HSVToRGB(leftHSV, 1f, alpha) : Color.HSVToRGB(rightHSV, 1f, alpha);
+                //var rightColor = i % 2 == 0 ? Color.HSVToRGB(rightHSV, 1f, alpha) : Color.HSVToRGB(leftHSV, 1f, alpha);
+                var color = Color.HSVToRGB(alpha, 1f, 1f);
+                leftSphereMaterials[i].SetColor("_Color", color.ColorWithAlpha(alpha));
+                rightSphereMaterials[i].SetColor("_Color", color.ColorWithAlpha(alpha));
+
+                var positionSize = this._audioSpectrum.PeakLevels[i] * 5f;
 
                 Transform leftSphere = leftSpheres[i].transform;
                 var leftPos = leftSphereVector[i];
-                leftSphere.localPosition = new Vector3(leftPos.x, (leftPos.y + (this._audioSpectrum.PeakLevels[i] * 2f)), leftPos.z);
+                leftSphere.localPosition = new Vector3((leftPos.x + positionSize), (leftPos.y + positionSize), (leftPos.z + positionSize));
                 leftSphere.localScale = new Vector3(0.05f, this._audioSpectrum.PeakLevels[i] * 10f, this._audioSpectrum.PeakLevels[i] * 10f);
 
                 Transform rightSphere = rightSpheres[i].transform;
                 var rightPos = rightSphereVector[i];
-                rightSphere.localPosition = new Vector3(rightPos.x, (rightPos.y + (this._audioSpectrum.PeakLevels[i] * 2f)), rightPos.z);
+                rightSphere.localPosition = new Vector3((rightPos.x - positionSize), (rightPos.y + positionSize), (rightPos.z + positionSize));
                 rightSphere.localScale = new Vector3(0.05f, this._audioSpectrum.PeakLevels[i] * 10f, this._audioSpectrum.PeakLevels[i] * 10f);
             }
 
@@ -120,7 +123,7 @@ namespace NullponSpectrum.Controllers
                 childMeshRenderer.material = leftSphereMaterials[i];
 
                 Transform sphereTransform = child.transform;
-                sphereTransform.localPosition = new Vector3(UnityEngine.Random.Range(-3.5f, -6f), UnityEngine.Random.Range(-1.5f, 5f), UnityEngine.Random.Range(3f, 25f));
+                sphereTransform.localPosition = new Vector3(UnityEngine.Random.Range(-4f, -10f), UnityEngine.Random.Range(1.5f, 8f), UnityEngine.Random.Range(5f, 25f));
                 sphereTransform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
                 sphereTransform.localRotation = Quaternion.Euler(-45f, 45f, 15f);
                 leftSphereVector.Add(sphereTransform.localPosition);
@@ -144,7 +147,7 @@ namespace NullponSpectrum.Controllers
                 childMeshRenderer.material = rightSphereMaterials[i];
 
                 Transform sphereTransform = child.transform;
-                sphereTransform.localPosition = new Vector3(UnityEngine.Random.Range(3.5f, 6f), UnityEngine.Random.Range(-1.5f, 5f), UnityEngine.Random.Range(3f, 25f));
+                sphereTransform.localPosition = new Vector3(UnityEngine.Random.Range(4f, 10f), UnityEngine.Random.Range(1.5f, 8f), UnityEngine.Random.Range(5f, 25f));
                 sphereTransform.localScale = new Vector3(0.05f, 0.05f, 0.05f);
                 sphereTransform.localRotation = Quaternion.Euler(-45f, -45f, -15f);
                 rightSphereVector.Add(sphereTransform.localPosition);
