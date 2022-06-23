@@ -16,6 +16,7 @@ namespace NullponSpectrum.Configuration
         public virtual bool LineVisualizer { get; set; } = false;
         public virtual bool MeshVisualizer { get; set; } = false;
         public virtual bool StripeVisualizer { get; set; } = false;
+        public virtual bool SphereVisualizer { get; set; } = false;
 
         public virtual bool TileVisualizer { get; set; } = false;
 
