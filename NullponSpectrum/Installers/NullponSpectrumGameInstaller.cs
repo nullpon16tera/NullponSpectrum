@@ -20,6 +20,7 @@ namespace NullponSpectrum.Installers
             this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<StripeVisualizerController>().AsCached().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<SphereVisualizerController>().AsCached().NonLazy();
         }
     }
 }
