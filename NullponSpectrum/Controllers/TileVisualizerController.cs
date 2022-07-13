@@ -15,6 +15,7 @@ namespace NullponSpectrum.Controllers
     public class TileVisualizerController : IInitializable, IDisposable
     {
         private int size = 6;
+        private int bandSize = 6;
 
         private List<Material> _leftMaterials = new List<Material>(6);
         private List<Material> _rightMaterials = new List<Material>(6);
@@ -55,11 +56,18 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < _leftMaterials.Count; i++)
             {
-                var alpha = (this._audioSpectrum.Levels[((size) - i)] * 20f) % 1f;
+                int j = i;
+
+                if (PluginConfig.Instance.SphereVisualizer)
+                {
+                    j = i * 3 + 6;
+                }
+                var alpha = (this._audioSpectrum.Levels[((bandSize) - j)] * 10f) % 1f;
                 var leftColor = Color.HSVToRGB(leftHSV, 1f, alpha);
                 var rightColor = Color.HSVToRGB(rightHSV, 1f, alpha);
                 _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(alpha));
                 _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(alpha));
+                
             }
 
         }
@@ -77,6 +85,11 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
+            if (PluginConfig.Instance.SphereVisualizer)
+            {
+                bandSize = 31;
+            }
+
             // セイバーの色取得
             float leftH, leftS, leftV;
             float rightH, rightS, rightV;
@@ -90,7 +103,7 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.Band = AudioSpectrum.BandType.EightBand;
             this._audioSpectrum.numberOfSamples = 512;
             this._audioSpectrum.fallSpeed = 0.15f;
-            this._audioSpectrum.sensibility = 5f;
+            this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             
