@@ -126,6 +126,13 @@ namespace NullponSpectrum.Views
             set => conf.SphereVisualizer = value;
         }
 
+        [UIValue("StageVisualizer")]
+        public bool StageVisualizer
+        {
+            get => conf.StageVisualizer;
+            set => conf.StageVisualizer = value;
+        }
+
         protected override void OnDestroy()
         {
             GameplaySetup.instance.RemoveTab("Nullpon Spectrum");
