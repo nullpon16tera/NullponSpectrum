@@ -47,6 +47,7 @@
 				<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 					<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
 					<modifier value='SphereVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Sphere Visualizer'></modifier>
+					<modifier value='StageVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Stage Visualizer'></modifier>
 				</vertical>
 			</vertical>
 		</horizontal>
