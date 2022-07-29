@@ -126,11 +126,11 @@ namespace NullponSpectrum.Views
             set => conf.SphereVisualizer = value;
         }
 
-        [UIValue("StageVisualizer")]
-        public bool StageVisualizer
+        [UIValue("UneUneVisualizer")]
+        public bool UneUneVisualizer
         {
-            get => conf.StageVisualizer;
-            set => conf.StageVisualizer = value;
+            get => conf.UneUneVisualizer;
+            set => conf.UneUneVisualizer = value;
         }
 
         protected override void OnDestroy()
