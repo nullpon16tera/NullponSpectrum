@@ -1,6 +1,6 @@
 # NullponSpectrum
 
-対応BeatSaberバージョン：　1.20.0～1.23.0
+対応BeatSaberバージョン：　1.20.0～1.24.x
 
 プレイエリアに、音に合わせて動くオブジェクトを追加します。  
 VMCAvatarとNalulunaAvatarsの床調整に対応しました。  
@@ -34,3 +34,4 @@ CustomPlatforms用に床オブジェクトの高さを調整できる設定を�
 
 - StripeVisualizer
 - SphereVisualizer
+- UneUneVisualizer
