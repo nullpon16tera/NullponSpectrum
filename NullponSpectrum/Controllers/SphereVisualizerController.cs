@@ -24,7 +24,7 @@ namespace NullponSpectrum.Controllers
         private GameObject sphereRoot = new GameObject("sphereVisualizerRoot");
 
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -37,7 +37,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
             if (!audio)
             {
@@ -47,7 +47,7 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 var alpha = (this._audioSpectrum.PeakLevels[i] * 10f) % 1f;
-                sphereMaterials[i].SetColor("_Color", Color.HSVToRGB(alpha, 1f, 1f).ColorWithAlpha(1f));
+                sphereMaterials[i].SetColor("_Color", Color.HSVToRGB(alpha, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.8f)));
 
                 var positionSize = this._audioSpectrum.PeakLevels[i] * 5f;
 
@@ -64,7 +64,10 @@ namespace NullponSpectrum.Controllers
 
         }
 
-
+        private float Lighting(float alpha, float withAlpha)
+        {
+            return 0.15f < alpha ? withAlpha : 0f;
+        }
 
         public void Initialize()
         {
@@ -79,7 +82,7 @@ namespace NullponSpectrum.Controllers
             }
 
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.ThirtyOneBand;
+            this._audioSpectrum.Band = AudioSpectrum31.BandType.ThirtyOneBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -156,10 +159,10 @@ namespace NullponSpectrum.Controllers
 
         private bool _disposedValue;
         public IDifficultyBeatmap Currentmap { get; private set; }
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IDifficultyBeatmap level, AudioSpectrum audioSpectrum)
+        public void Constructor(IDifficultyBeatmap level, AudioSpectrum31 audioSpectrum)
         {
             this.Currentmap = level;
             this._audioSpectrum = audioSpectrum;

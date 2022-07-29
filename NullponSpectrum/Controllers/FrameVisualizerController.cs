@@ -29,7 +29,7 @@ namespace NullponSpectrum.Controllers
             Right,
         };
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -42,7 +42,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum4 audio)
         {
             if (!audio)
             {
@@ -54,21 +54,12 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < cubes.Count; i++)
             {
-                int j = i;
-
-                if (bandType == AudioSpectrum.BandType.TwentySixBand)
-                {
-                    j = i + 6;
-                }
-                if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
-                {
-                    j = i + 8;
-                }
-                var peak = this._audioSpectrum.PeakLevels[j] * scale;
+                
+                var peak = this._audioSpectrum.PeakLevels[i] * scale;
                 var frameSize = 0.25f + ((size - i) * 0.2f) + (peak);
                 cubes[i].transform.localScale = new Vector3(frameSize, 1f, frameSize);
 
-                var alpha = (this._audioSpectrum.PeakLevels[j] * size) % 1f;
+                var alpha = (this._audioSpectrum.PeakLevels[i] * size) % 1f;
                 var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
                 var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
                 var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
@@ -90,7 +81,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
+            this._audioSpectrum.Band = AudioSpectrum4.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -178,10 +169,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum4 _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum audioSpectrum)
+        public void Constructor(AudioSpectrum4 audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
             

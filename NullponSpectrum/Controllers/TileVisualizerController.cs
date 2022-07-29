@@ -15,7 +15,6 @@ namespace NullponSpectrum.Controllers
     public class TileVisualizerController : IInitializable, IDisposable
     {
         private int size = 6;
-        private int bandSize = 6;
 
         private List<Material> _leftMaterials = new List<Material>(6);
         private List<Material> _rightMaterials = new List<Material>(6);
@@ -34,7 +33,7 @@ namespace NullponSpectrum.Controllers
             Right,
         };
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum8 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -47,7 +46,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum8 audio)
         {
             if (!audio)
             {
@@ -56,20 +55,20 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < _leftMaterials.Count; i++)
             {
-                int j = i;
-
-                if (PluginConfig.Instance.SphereVisualizer)
-                {
-                    j = i * 3 + 6;
-                }
-                var alpha = (this._audioSpectrum.Levels[((bandSize) - j)] * 10f) % 1f;
-                var leftColor = Color.HSVToRGB(leftHSV, 1f, alpha);
-                var rightColor = Color.HSVToRGB(rightHSV, 1f, alpha);
-                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(alpha));
-                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(alpha));
+                var alpha = (this._audioSpectrum.Levels[size - i] * 10f) % 1f;
+                var light = Lighting(alpha, 1f);
+                var leftColor = Color.HSVToRGB(leftHSV, 1f, light);
+                var rightColor = Color.HSVToRGB(rightHSV, 1f, light);
+                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
+                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
                 
             }
 
+        }
+
+        private float Lighting(float alpha, float withAlpha)
+        {
+            return 0.15f < alpha ? withAlpha : 0f;
         }
 
 
@@ -85,11 +84,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (PluginConfig.Instance.SphereVisualizer)
-            {
-                bandSize = 31;
-            }
-
             // セイバーの色取得
             float leftH, leftS, leftV;
             float rightH, rightS, rightV;
@@ -100,7 +94,7 @@ namespace NullponSpectrum.Controllers
             this.rightHSV = rightH;
 
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.EightBand;
+            this._audioSpectrum.Band = AudioSpectrum8.BandType.EightBand;
             this._audioSpectrum.numberOfSamples = 512;
             this._audioSpectrum.fallSpeed = 0.15f;
             this._audioSpectrum.sensibility = 10f;
@@ -306,10 +300,10 @@ namespace NullponSpectrum.Controllers
 
         private bool _disposedValue;
         private ColorScheme _colorScheme;
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum8 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum audioSpectrum)
+        public void Constructor(ColorScheme scheme, AudioSpectrum8 audioSpectrum)
         {
             this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;

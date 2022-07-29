@@ -34,7 +34,7 @@ namespace NullponSpectrum.Controllers
             Right,
         };
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum26 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -47,7 +47,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum26 audio)
         {
             if (!audio)
             {
@@ -58,14 +58,18 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < _leftMaterials.Count; i++)
             {
                 var alpha = (this._audioSpectrum.PeakLevels[((size - 1) - i)] * 20f) % 1f;
-                var leftColor = Color.HSVToRGB(leftHSV, 1f, alpha);
-                var rightColor = Color.HSVToRGB(rightHSV, 1f, alpha);
-                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(alpha));
-                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(alpha));
+                var leftColor = Color.HSVToRGB(leftHSV, 1f, Lighting(alpha, 1f));
+                var rightColor = Color.HSVToRGB(rightHSV, 1f, Lighting(alpha, 1f));
+                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
+                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
             }
 
         }
 
+        private float Lighting(float alpha, float withAlpha)
+        {
+            return 0.15f < alpha ? withAlpha : 0f;
+        }
 
         public void Initialize()
         {
@@ -89,7 +93,7 @@ namespace NullponSpectrum.Controllers
             this.rightHSV = rightH;
 
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.TwentySixBand;
+            this._audioSpectrum.Band = AudioSpectrum26.BandType.TwentySixBand;
             this._audioSpectrum.numberOfSamples = 2048;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 0.01f;
@@ -240,10 +244,10 @@ namespace NullponSpectrum.Controllers
 
         private bool _disposedValue;
         private ColorScheme _colorScheme;
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum26 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum audioSpectrum)
+        public void Constructor(ColorScheme scheme, AudioSpectrum26 audioSpectrum)
         {
             this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;

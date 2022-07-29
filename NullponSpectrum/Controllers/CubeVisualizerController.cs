@@ -20,7 +20,7 @@ namespace NullponSpectrum.Controllers
         private Material cubeMaterial;
         private GameObject cubeRoot = new GameObject("cubeVisualizerRoot");
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -33,30 +33,17 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum4 audio)
         {
             if (!audio)
             {
                 return;
             }
 
-            var bandType = this._audioSpectrum.Band;
-
-            int j = 0;
-
-            if (bandType == AudioSpectrum.BandType.TwentySixBand)
-            {
-                j = 6;
-            }
-            if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
-            {
-                j = 8;
-            }
-
-            var alpha = (this._audioSpectrum.PeakLevels[j] * size) % 1f;
+            var alpha = (this._audioSpectrum.PeakLevels[0] * size) % 1f;
             var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
             var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
-            var peak = this._audioSpectrum.PeakLevels[j] * scale;
+            var peak = this._audioSpectrum.PeakLevels[0] * scale;
             var cubeSize = 0.2f + peak * 1.3f;
             var bpm = _timeSource.songTime * (60f / this.Currentmap.level.beatsPerMinute);
             
@@ -71,18 +58,21 @@ namespace NullponSpectrum.Controllers
                 cube.transform.localRotation = Quaternion.Euler(rotateRog, rotateRog, rotateRog);
                 cube.transform.localPosition = cubePosition;
 
-                var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
+                var color = Color.HSVToRGB(colorLerp, 1f, Lighting(alpha, 1f));
                 //meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(amp, 1f, peakAmp));
                 /*meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(0f, 1f, 0f));
                 meshRenderers[i].material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
                 meshRenderers[i].material.SetFloat("_TintColorAlpha", alpha);*/
-                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
+                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(Lighting(alpha, 0.6f)));
                 
             }
 
         }
 
-
+        private float Lighting(float alpha, float withAlpha)
+        {
+            return 0.15f < alpha ? withAlpha : 0f;
+        }
 
         public void Initialize()
         {
@@ -96,7 +86,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
+            this._audioSpectrum.Band = AudioSpectrum4.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -159,10 +149,10 @@ namespace NullponSpectrum.Controllers
         private bool _disposedValue;
         private IAudioTimeSource _timeSource;
         public IDifficultyBeatmap Currentmap { get; private set; }
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum4 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, AudioSpectrum audioSpectrum)
+        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, AudioSpectrum4 audioSpectrum)
         {
             this._timeSource = source;
             this.Currentmap = level;

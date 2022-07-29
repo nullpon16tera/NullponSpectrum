@@ -29,7 +29,7 @@ namespace NullponSpectrum.Controllers
 
         private GameObject lineVisualizerRoot = new GameObject("lineVisualizerRoot");
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -42,7 +42,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum audio)
+        private void UpdateAudioSpectrums(AudioSpectrum4 audio)
         {
             if (!audio)
             {
@@ -59,18 +59,7 @@ namespace NullponSpectrum.Controllers
                     continue;
                 }
 
-                int j = i - 1;
-
-                if (bandType == AudioSpectrum.BandType.TwentySixBand)
-                {
-                    j = i + 4;
-                }
-                if (bandType == AudioSpectrum.BandType.ThirtyOneBand)
-                {
-                    j = i + 6;
-                }
-
-                var alpha = this._audioSpectrum.PeakLevels[j] * 5f;
+                var alpha = this._audioSpectrum.PeakLevels[i] * 5f;
                 var line = linePositions[i];
                 line.z = alpha;
                 line.y = floorTransform.localPosition.y;
@@ -100,7 +89,7 @@ namespace NullponSpectrum.Controllers
 
             this.floorTransform = FloorAdjustorUtil.NullponSpectrumFloor.transform;
 
-            this._audioSpectrum.Band = AudioSpectrum.BandType.FourBand;
+            this._audioSpectrum.Band = AudioSpectrum4.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 0.3f;
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -137,10 +126,10 @@ namespace NullponSpectrum.Controllers
 
         private bool _disposedValue;
         private ColorScheme _colorScheme;
-        private AudioSpectrum _audioSpectrum;
+        private AudioSpectrum4 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum audioSpectrum)
+        public void Constructor(ColorScheme scheme, AudioSpectrum4 audioSpectrum)
         {
             this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;

@@ -132,15 +132,18 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
+    <Compile Include="AudioSpectrums\AudioSpectrum26.cs" />
+    <Compile Include="AudioSpectrums\AudioSpectrum31.cs" />
+    <Compile Include="AudioSpectrums\AudioSpectrum8.cs" />
+    <Compile Include="AudioSpectrums\AudioSpectrum4.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
     <Compile Include="Controllers\LineVisualizerController.cs" />
     <Compile Include="Controllers\SphereVisualizerController.cs" />
-    <Compile Include="Controllers\StageVisualizerController.cs" />
     <Compile Include="Controllers\StripeVisualizerController.cs" />
     <Compile Include="Controllers\MeshVisualizerController.cs" />
     <Compile Include="Controllers\FrameVisualizerController.cs" />
     <Compile Include="Controllers\TileVisualizerController.cs" />
+    <Compile Include="Controllers\UneUneVisualizerController.cs" />
     <Compile Include="GameObjectExtension.cs" />
     <Compile Include="Installers\NullponSpectrumGameInstaller.cs" />
     <Compile Include="Installers\NullponSpectrumMenuInstaller.cs" />
@@ -188,6 +191,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\SphereVisualizer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\UneUneVisualizer.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
