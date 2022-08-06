@@ -26,6 +26,12 @@ namespace NullponSpectrum.Controllers
         private float leftHSV;
         private float rightHSV;
         private float[] s_shift = new float[31];
+        private float updateTime = 0;
+        /// <summary>
+        /// 波形をずらす秒数の閾値(sec)
+        /// </summary>
+        /// <remarks>設定ファイルに逃がしてもいいし、曲のBPMと連動させてもいい</remarks>
+        private static readonly float s_updateThresholdTime = 0.025f;
 
 
         private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
@@ -40,6 +46,8 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
+            this.updateTime += Time.deltaTime;
+            var needUpdate = s_updateThresholdTime < updateTime;
             if (!audio)
             {
                 return;
@@ -53,24 +61,19 @@ namespace NullponSpectrum.Controllers
                 float amplitude = Mathf.Cos(timeSize) * 3f + (i * 0.05f);
                 var alpha = this._audioSpectrum.PeakLevels[8] * 10f % 1f;
                 int index = 30 - i;
-                try
-                {
-                    if (index > 0)
-                    {
-                        this.s_shift[index] = this.s_shift[index - 1];
+                if (needUpdate) {
+                    try {
+                        if (index > 0) {
+                            this.s_shift[index] = this.s_shift[index - 1];
+                        }
+                        else {
+                            this.s_shift[index] = tmp;
+                        }
                     }
-                    else
-                    {
-                        this.s_shift[index] = tmp;
+                    catch (Exception e) {
+                        Plugin.Log.Debug(e);
                     }
                 }
-                catch (Exception e)
-                {
-                    Plugin.Log.Debug(e);
-                }
-                
-                
-
 
                 uneuneLeftMaterials[i].SetColor("_Color", Color.HSVToRGB(this.leftHSV, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.9f)));
                 uneuneRightMaterials[i].SetColor("_Color", Color.HSVToRGB(this.rightHSV, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.9f)));
@@ -78,8 +81,9 @@ namespace NullponSpectrum.Controllers
                 UneUne(uneuneRightObjects[i], index, alpha, amplitude);
             }
 
-
-
+            if (needUpdate) {
+                updateTime = 0;
+            }
         }
 
         private void UneUne(GameObject obj, int index, float alpha, float amplitude)
