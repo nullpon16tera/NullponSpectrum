@@ -53,7 +53,7 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            float tmp = this._audioSpectrum.PeakLevels[7] * 50f;
+            float tmp = this._audioSpectrum.PeakLevels[8] * 50f;
 
             for (int i = 0; i < size; i++)
             {
@@ -75,10 +75,8 @@ namespace NullponSpectrum.Controllers
                     }
                 }
 
-                uneuneLeftMaterials[i].SetColor("_Color", Color.HSVToRGB(this.leftHSV, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.9f)));
-                uneuneRightMaterials[i].SetColor("_Color", Color.HSVToRGB(this.rightHSV, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.9f)));
-                UneUne(uneuneLeftObjects[i], index, alpha, amplitude);
-                UneUne(uneuneRightObjects[i], index, alpha, amplitude);
+                UneUne(uneuneLeftObjects[i], uneuneLeftMaterials[i], this.leftHSV, index, alpha, amplitude);
+                UneUne(uneuneRightObjects[i], uneuneRightMaterials[i], this.rightHSV, index, alpha, amplitude);
             }
 
             if (needUpdate) {
@@ -86,10 +84,19 @@ namespace NullponSpectrum.Controllers
             }
         }
 
-        private void UneUne(GameObject obj, int index, float alpha, float amplitude)
+        private void UneUne(GameObject obj, Material mat, float h, int index, float alpha, float amplitude)
         {
-            
             obj.transform.localScale = new Vector3(0.5f + alpha, 0.2f + this.s_shift[index], 0.5f);
+            if (0.5f < obj.transform.localScale.y)
+            {
+                mat.SetColor("_TintColor", Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.9f));
+                mat.SetFloat("_Brightness", 1f);
+            }
+            else
+            {
+                mat.SetColor("_TintColor", Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f));
+                mat.SetFloat("_Brightness", 0f);
+            }
 
             var position = obj.transform.localPosition;
             obj.transform.localPosition = new Vector3(position.x, amplitude, position.z);
@@ -134,18 +141,14 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                Material uneuneLeftMaterial = new Material(Shader.Find("Custom/Glowing"));
-                uneuneLeftMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
-                uneuneLeftMaterial.SetFloat("_EnableColorInstancing", 1f);
-                uneuneLeftMaterial.SetFloat("_WhiteBoostType", 1f);
-                uneuneLeftMaterial.SetFloat("_NoiseDithering", 1f);
+                Material uneuneLeftMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+                uneuneLeftMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+                uneuneLeftMaterial.SetFloat("_Brightness", 0f);
                 uneuneLeftMaterials.Add(uneuneLeftMaterial);
 
-                Material uneuneRightMaterial = new Material(Shader.Find("Custom/Glowing"));
-                uneuneRightMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
-                uneuneRightMaterial.SetFloat("_EnableColorInstancing", 1f);
-                uneuneRightMaterial.SetFloat("_WhiteBoostType", 1f);
-                uneuneRightMaterial.SetFloat("_NoiseDithering", 1f);
+                Material uneuneRightMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+                uneuneRightMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+                uneuneRightMaterial.SetFloat("_Brightness", 0f);
                 uneuneRightMaterials.Add(uneuneRightMaterial);
 
                 GameObject uneuneLeftObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
