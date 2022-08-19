@@ -61,6 +61,9 @@
 						</horizontal>
 					</vertical>
 				</horizontal>
+				<horizontal child-control-height='false' child-expand-height='false'>
+					<dropdown-list-setting value='listChoice' choices='listOptions' apply-on-change='true' text='UneUne Band Select' />
+				</horizontal>
 			</vertical>
 		</tab>
 	</vertical>

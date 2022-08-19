@@ -11,6 +11,7 @@ namespace NullponSpectrum.Configuration
         public virtual bool Enable { get; set; } = false; // Must be 'virtual' if you want BSIPA to detect a value change and save the config automatically.
         public virtual bool isFloorHeight { get; set; } = false;
         public virtual float floorHeight { get; set; } = 0f;
+        public virtual int listChoice { get; set; } = 6;
         public virtual bool CubeVisualizer { get; set; } = false;
         public virtual bool FrameVisualizer { get; set; } = false;
         public virtual bool LineVisualizer { get; set; } = false;

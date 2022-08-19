@@ -16,8 +16,12 @@ namespace NullponSpectrum.Controllers
         private float scale = 2f;
         private int size = 4;
 
+        private Material _cubeMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
         private List<GameObject> cubes = new List<GameObject>(4);
-        private Material cubeMaterial;
         private GameObject cubeRoot = new GameObject("cubeVisualizerRoot");
 
         private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
@@ -58,20 +62,28 @@ namespace NullponSpectrum.Controllers
                 cube.transform.localRotation = Quaternion.Euler(rotateRog, rotateRog, rotateRog);
                 cube.transform.localPosition = cubePosition;
 
-                var color = Color.HSVToRGB(colorLerp, 1f, Lighting(alpha, 1f));
-                //meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(amp, 1f, peakAmp));
-                /*meshRenderers[i].material.SetColor("_Color", Color.HSVToRGB(0f, 1f, 0f));
-                meshRenderers[i].material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
-                meshRenderers[i].material.SetFloat("_TintColorAlpha", alpha);*/
-                cubeMaterial.SetColor("_Color", color.ColorWithAlpha(Lighting(alpha, 0.6f)));
-                
+                ChangeMaterialProperty(cube, colorLerp, cubeSize);
             }
 
         }
 
-        private float Lighting(float alpha, float withAlpha)
+        private void ChangeMaterialProperty(GameObject obj, float h, float size)
         {
-            return 0.15f < alpha ? withAlpha : 0f;
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if (0.21f < size)
+            {
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.8f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
+            else
+            {
+                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
         }
 
         public void Initialize()
@@ -94,20 +106,19 @@ namespace NullponSpectrum.Controllers
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
-            cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
-            cubeMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
-            cubeMaterial.SetFloat("_EnableColorInstancing", 1f);
-            cubeMaterial.SetFloat("_WhiteBoostType", 1f);
-            cubeMaterial.SetFloat("_NoiseDithering", 1f);
-            //childMeshRenderer.material.SetColor("_Color", Color.HSVToRGB(1f, 1f, 1f));
-            //childMeshRenderer.material.SetColor("_AddColor", Color.HSVToRGB(amp, 1f, 1f));
-            //childMeshRenderer.material.SetFloat("_TintColorAlpha", 0f);
+            _cubeMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _cubeMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _cubeMaterial.SetFloat("_Brightness", 0f);
+
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
 
             for (int i = 0; i < size; i++)
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 MeshRenderer childMeshRenderer = child.GetComponent<MeshRenderer>();
-                childMeshRenderer.material = cubeMaterial;
+                childMeshRenderer.material = _cubeMaterial;
                 
                 Transform cubeTransform = child.transform;
                 cubeTransform.localPosition = new Vector3(0f, 0.3f, 0f);

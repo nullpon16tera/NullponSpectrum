@@ -16,8 +16,16 @@ namespace NullponSpectrum.Controllers
     {
         private int size = 6;
 
-        private List<Material> _leftMaterials = new List<Material>(6);
-        private List<Material> _rightMaterials = new List<Material>(6);
+        private Material _tileMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
+        private List<GameObject> objLeftA = new List<GameObject>(6);
+        private List<GameObject> objRightA = new List<GameObject>(6);
+        private List<GameObject> objLeftB = new List<GameObject>(6);
+        private List<GameObject> objRightB = new List<GameObject>(6);
+
         private Material _lineMaterial;
         private Material _frameMaterial;
         private Material _floorMaterial;
@@ -53,22 +61,35 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            for (int i = 0; i < _leftMaterials.Count; i++)
+            for (int i = 0; i < size; i++)
             {
                 var alpha = (this._audioSpectrum.Levels[size - i] * 10f) % 1f;
-                var light = Lighting(alpha, 1f);
-                var leftColor = Color.HSVToRGB(leftHSV, 1f, light);
-                var rightColor = Color.HSVToRGB(rightHSV, 1f, light);
-                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
-                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
-                
+                ChangeMaterialProperty(objLeftA[i], leftHSV, alpha);
+                ChangeMaterialProperty(objRightA[i], rightHSV, alpha);
+                ChangeMaterialProperty(objLeftB[i], leftHSV, alpha);
+                ChangeMaterialProperty(objRightB[i], rightHSV, alpha);
+
             }
 
         }
 
-        private float Lighting(float alpha, float withAlpha)
+        private void ChangeMaterialProperty(GameObject obj, float h, float alpha)
         {
-            return 0.15f < alpha ? withAlpha : 0f;
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if (0.15f < alpha)
+            {
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.5f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
+            else
+            {
+                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
         }
 
 
@@ -176,23 +197,14 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            // メインマテリアル生成
-            for (int r = 0; r < size; r++)
-            {
-                Material leftMaterial = new Material(Shader.Find("Custom/Glowing"));
-                leftMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                leftMaterial.SetFloat("_EnableColorInstancing", 1f);
-                leftMaterial.SetFloat("_WhiteBoostType", 1f);
-                leftMaterial.SetFloat("_NoiseDithering", 1f);
-                _leftMaterials.Add(leftMaterial);
 
-                Material rightMaterial = new Material(Shader.Find("Custom/Glowing"));
-                rightMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                rightMaterial.SetFloat("_EnableColorInstancing", 1f);
-                rightMaterial.SetFloat("_WhiteBoostType", 1f);
-                rightMaterial.SetFloat("_NoiseDithering", 1f);
-                _rightMaterials.Add(rightMaterial);
-            }
+            _tileMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _tileMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _tileMaterial.SetFloat("_Brightness", 0f);
+
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
 
             // メインオブジェクト生成
             for (int i = 0; i < size; i++)
@@ -223,13 +235,14 @@ namespace NullponSpectrum.Controllers
                 }
 
                 var leftMeshRenderer = leftObjA.GetComponent<MeshRenderer>();
-                leftMeshRenderer.material = _leftMaterials[i];
+                leftMeshRenderer.material = _tileMaterial;
                 var rightMeshRenderer = rightObjA.GetComponent<MeshRenderer>();
-                rightMeshRenderer.material = _rightMaterials[i];
+                rightMeshRenderer.material = _tileMaterial;
 
                 leftObjA.transform.SetParent(tileVisualizerRoot.transform);
                 rightObjA.transform.SetParent(tileVisualizerRoot.transform);
-
+                objLeftA.Add(leftObjA);
+                objRightA.Add(rightObjA);
 
                 // Right object area
                 GameObject leftObjB = GameObject.CreatePrimitive(PrimitiveType.Plane);
@@ -257,12 +270,14 @@ namespace NullponSpectrum.Controllers
                 }
 
                 var leftMeshRendererB = leftObjB.GetComponent<MeshRenderer>();
-                leftMeshRendererB.material = _leftMaterials[i];
+                leftMeshRendererB.material = _tileMaterial;
                 var rightMeshRendererB = rightObjB.GetComponent<MeshRenderer>();
-                rightMeshRendererB.material = _rightMaterials[i];
+                rightMeshRendererB.material = _tileMaterial;
 
                 leftObjB.transform.SetParent(tileVisualizerRoot.transform);
                 rightObjB.transform.SetParent(tileVisualizerRoot.transform);
+                objLeftB.Add(leftObjB);
+                objRightB.Add(rightObjB);
             }
         }
 

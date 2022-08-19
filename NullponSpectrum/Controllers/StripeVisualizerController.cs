@@ -15,11 +15,13 @@ namespace NullponSpectrum.Controllers
     {
         private int size = 31;
 
+        private Material _stripeMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
         private List<GameObject> leftPlane = new List<GameObject>(31);
         private List<GameObject> rightPlane = new List<GameObject>(31);
-        private List<Material> _leftMaterials = new List<Material>(31);
-        private List<Material> _rightMaterials = new List<Material>(31);
-        private Material _lineMaterial;
         private Material _frameMaterial;
         private Material _floorMaterial;
         private GameObject stripeVisualizerRoot = new GameObject("stripeVisualizerRoot");
@@ -54,20 +56,33 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            for (int i = 0; i < _leftMaterials.Count; i++)
+            for (int i = 0; i < size; i++)
             {
                 var alpha = (this._audioSpectrum.PeakLevels[((size - 1) - i)] * 20f) % 1f;
-                var leftColor = Color.HSVToRGB(leftHSV, 1f, Lighting(alpha, 1f));
-                var rightColor = Color.HSVToRGB(rightHSV, 1f, Lighting(alpha, 1f));
-                _leftMaterials[i].SetColor("_Color", leftColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
-                _rightMaterials[i].SetColor("_Color", rightColor.ColorWithAlpha(Lighting(alpha, 0.6f)));
+                ChangeMaterialProperty(leftPlane[i], leftHSV, alpha);
+                ChangeMaterialProperty(rightPlane[i], rightHSV, alpha);
+
             }
 
         }
 
-        private float Lighting(float alpha, float withAlpha)
+        private void ChangeMaterialProperty(GameObject obj, float h, float alpha)
         {
-            return 0.15f < alpha ? withAlpha : 0f;
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if (0.15f < alpha)
+            {
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.5f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
+            else
+            {
+                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
         }
 
         public void Initialize()
@@ -102,7 +117,6 @@ namespace NullponSpectrum.Controllers
             CreateFloorObject();
             CreateFrameObject();
             CreateMainObject();
-            //CreateLineObject();
 
             if (PluginConfig.Instance.isFloorHeight)
             {
@@ -124,7 +138,6 @@ namespace NullponSpectrum.Controllers
 
             floor.transform.localScale = new Vector3(0.3f, 0.01f, 0.2f);
             floor.transform.localPosition = new Vector3(0f, 0.005f, 0f);
-            floor.SetActive(floor);
             floor.transform.SetParent(stripeVisualizerRoot.transform);
         }
 
@@ -172,73 +185,36 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            // メインマテリアル生成
-            for (int r = 0; r < size; r++)
-            {
-                Material leftMaterial = new Material(Shader.Find("Custom/Glowing"));
-                leftMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                leftMaterial.SetFloat("_EnableColorInstancing", 1f);
-                leftMaterial.SetFloat("_WhiteBoostType", 1f);
-                leftMaterial.SetFloat("_NoiseDithering", 1f);
-                _leftMaterials.Add(leftMaterial);
+            _stripeMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _stripeMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _stripeMaterial.SetFloat("_Brightness", 0f);
 
-                Material rightMaterial = new Material(Shader.Find("Custom/Glowing"));
-                rightMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
-                rightMaterial.SetFloat("_EnableColorInstancing", 1f);
-                rightMaterial.SetFloat("_WhiteBoostType", 1f);
-                rightMaterial.SetFloat("_NoiseDithering", 1f);
-                _rightMaterials.Add(rightMaterial);
-            }
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+
+            var scale = new Vector3(0.0035f, 0.01f, 0.2f);
 
             // メインオブジェクト生成
             for (int i = 0; i < size; i++)
             {
                 GameObject leftObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform leftTransform = leftObj.transform;
-                leftTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
-                leftTransform.localPosition = new Vector3(-(0.0035f + (0.05f * i)), 0.0051f, 0f);
+                leftTransform.localScale = scale;
+                leftTransform.localPosition = new Vector3(-(0.0035f + (0.049f * i)), 0.0051f, 0f);
+                leftObj.transform.SetParent(stripeVisualizerRoot.transform);
+                var leftMeshRenderer = leftObj.GetComponent<MeshRenderer>();
+                leftMeshRenderer.material = _stripeMaterial;
+                leftPlane.Add(leftObj);
 
                 GameObject rightObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
                 Transform rightTransform = rightObj.transform;
-                rightTransform.localScale = new Vector3(0.0035f, 0.01f, 0.2f);
-                rightTransform.localPosition = new Vector3((0.0035f + (0.05f * i)), 0.0051f, 0f);
-
-                var leftMeshRenderer = leftObj.GetComponent<MeshRenderer>();
-                leftMeshRenderer.material = _leftMaterials[i];
-                var rightMeshRenderer = rightObj.GetComponent<MeshRenderer>();
-                rightMeshRenderer.material = _rightMaterials[i];
-
-                leftObj.transform.SetParent(stripeVisualizerRoot.transform);
+                rightTransform.localScale = scale;
+                rightTransform.localPosition = new Vector3((0.0035f + (0.049f * i)), 0.0051f, 0f);
                 rightObj.transform.SetParent(stripeVisualizerRoot.transform);
-            }
-
-            foreach (GameObject obj in leftPlane)
-            {
-                obj.SetActive(obj);
-            }
-            foreach (GameObject obj in rightPlane)
-            {
-                obj.SetActive(obj);
-            }
-        }
-
-        private void CreateLineObject()
-        {
-            // メッシュになるようのオブジェクト生成
-            var lineColor = Color.HSVToRGB(0.5f, 0f, 0f);
-            _lineMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _lineMaterial.SetColor("_Color", lineColor.ColorWithAlpha(0f));
-
-            for (int i = 0; i < 20; i++)
-            {
-                GameObject line = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                Transform lineTransform = line.transform;
-                lineTransform.localScale = new Vector3(0.3f, 0.01f, 0.0025f);
-                lineTransform.localPosition = new Vector3(0f, 0.0052f, -1f + (0.1f * i));
-                MeshRenderer lineMeshRendere = line.GetComponent<MeshRenderer>();
-                lineMeshRendere.material = _lineMaterial;
-                line.transform.SetParent(stripeVisualizerRoot.transform);
-                line.SetActive(line);
+                var rightMeshRenderer = rightObj.GetComponent<MeshRenderer>();
+                rightMeshRenderer.material = _stripeMaterial;
+                rightPlane.Add(rightObj);
             }
         }
 

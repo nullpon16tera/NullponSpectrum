@@ -16,12 +16,17 @@ namespace NullponSpectrum.Controllers
     {
         private int size = 31;
 
+        private Material _uneuneMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
         private List<GameObject> uneuneLeftObjects = new List<GameObject>(31);
         private List<GameObject> uneuneRightObjects = new List<GameObject>(31);
-        private List<Material> uneuneLeftMaterials = new List<Material>(31);
-        private List<Material> uneuneRightMaterials = new List<Material>(31);
 
         private GameObject uneuneRoot = new GameObject("uneuneVisualizerRoot");
+
+        private int choice = 6;
 
         private float leftHSV;
         private float rightHSV;
@@ -40,6 +45,10 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
+            if (!PluginConfig.Instance.UneUneVisualizer)
+            {
+                return;
+            }
 
             this.UpdateAudioSpectrums(obj);
         }
@@ -47,19 +56,20 @@ namespace NullponSpectrum.Controllers
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
             this.updateTime += Time.deltaTime;
-            var needUpdate = s_updateThresholdTime < updateTime;
+            var bpmSpeed = -(this.Currentmap.level.beatsPerMinute * 0.00001f);
+            var needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
             if (!audio)
             {
                 return;
             }
 
-            float tmp = this._audioSpectrum.PeakLevels[8] * 50f;
+            float tmp = this._audioSpectrum.PeakLevels[choice] * 50f;
 
             for (int i = 0; i < size; i++)
             {
                 float timeSize = _timeSource.songTime + (float)(i + 1) / size * Mathf.PI;
                 float amplitude = Mathf.Cos(timeSize) * 3f + (i * 0.05f);
-                var alpha = this._audioSpectrum.PeakLevels[8] * 10f % 1f;
+                var alpha = this._audioSpectrum.PeakLevels[choice] * 10f % 1f;
                 int index = 30 - i;
                 if (needUpdate) {
                     try {
@@ -75,8 +85,8 @@ namespace NullponSpectrum.Controllers
                     }
                 }
 
-                UneUne(uneuneLeftObjects[i], uneuneLeftMaterials[i], this.leftHSV, index, alpha, amplitude);
-                UneUne(uneuneRightObjects[i], uneuneRightMaterials[i], this.rightHSV, index, alpha, amplitude);
+                UneUne(uneuneLeftObjects[i], this.leftHSV, index, alpha, amplitude);
+                UneUne(uneuneRightObjects[i], this.rightHSV, index, alpha, amplitude);
             }
 
             if (needUpdate) {
@@ -84,34 +94,36 @@ namespace NullponSpectrum.Controllers
             }
         }
 
-        private void UneUne(GameObject obj, Material mat, float h, int index, float alpha, float amplitude)
+        private void UneUne(GameObject obj,  float h, int index, float alpha, float amplitude)
         {
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             obj.transform.localScale = new Vector3(0.5f + alpha, 0.2f + this.s_shift[index], 0.5f);
             if (0.5f < obj.transform.localScale.y)
             {
-                mat.SetColor("_TintColor", Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.9f));
-                mat.SetFloat("_Brightness", 1f);
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.9f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
-                mat.SetColor("_TintColor", Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f));
-                mat.SetFloat("_Brightness", 0f);
+                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
             }
 
             var position = obj.transform.localPosition;
             obj.transform.localPosition = new Vector3(position.x, amplitude, position.z);
         }
 
-        private float Lighting(float alpha, float withAlpha)
-        {
-            return 0.13f < alpha ? withAlpha : 0f;
-        }
-
-
-
         public void Initialize()
         {
             if (!PluginConfig.Instance.Enable)
+            {
+                return;
+            }
+            if (!PluginConfig.Instance.UneUneVisualizer)
             {
                 return;
             }
@@ -131,6 +143,9 @@ namespace NullponSpectrum.Controllers
             this.leftHSV = leftH;
             this.rightHSV = rightH;
 
+            choice = PluginConfig.Instance.listChoice;
+
+
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
@@ -138,37 +153,38 @@ namespace NullponSpectrum.Controllers
             GameObject leftUneUne = new GameObject("leftUneUne");
             GameObject rightUneUne = new GameObject("rightUneUne");
 
+            _uneuneMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _uneuneMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _uneuneMaterial.SetFloat("_Brightness", 0f);
+
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+
+            var scale = new Vector3(0.5f, 0.2f, 0.5f);
 
             for (int i = 0; i < size; i++)
             {
-                Material uneuneLeftMaterial = new Material(Shader.Find("Custom/SaberBlade"));
-                uneuneLeftMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
-                uneuneLeftMaterial.SetFloat("_Brightness", 0f);
-                uneuneLeftMaterials.Add(uneuneLeftMaterial);
+                GameObject objLeft = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                MeshRenderer leftMeshRenderer = objLeft.GetComponent<MeshRenderer>();
+                leftMeshRenderer.material = _uneuneMaterial;
+                objLeft.transform.SetParent(leftUneUne.transform);
+                objLeft.transform.localScale = scale;
+                objLeft.transform.localPosition = new Vector3(-1.5f - (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
+                objLeft.transform.localRotation = Quaternion.Euler(0f, 0f, 25f + (i * 0.6f + 0.5f));
+                uneuneLeftObjects.Add(objLeft);
 
-                Material uneuneRightMaterial = new Material(Shader.Find("Custom/SaberBlade"));
-                uneuneRightMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
-                uneuneRightMaterial.SetFloat("_Brightness", 0f);
-                uneuneRightMaterials.Add(uneuneRightMaterial);
-
-                GameObject uneuneLeftObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                MeshRenderer uneuneLeftMeshRenderer = uneuneLeftObject.GetComponent<MeshRenderer>();
-                uneuneLeftMeshRenderer.material = uneuneLeftMaterials[i];
-                uneuneLeftObject.transform.SetParent(leftUneUne.transform);
-                uneuneLeftObject.transform.localScale = new Vector3(0.5f, 0.2f, 0.5f);
-                uneuneLeftObject.transform.localPosition = new Vector3(-1.5f - (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
-                uneuneLeftObject.transform.localRotation = Quaternion.Euler(0f, 0f, 25f + (i * 0.6f + 0.5f));
-                uneuneLeftObjects.Add(uneuneLeftObject);
-
-                GameObject uneuneRightObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                MeshRenderer uneuneRightMeshRenderer = uneuneRightObject.GetComponent<MeshRenderer>();
-                uneuneRightMeshRenderer.material = uneuneRightMaterials[i];
-                uneuneRightObject.transform.SetParent(rightUneUne.transform);
-                uneuneRightObject.transform.localScale = new Vector3(0.5f, 0.2f, 0.5f);
-                uneuneRightObject.transform.localPosition = new Vector3(1.5f + (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
-                uneuneRightObject.transform.localRotation = Quaternion.Euler(0f, 0f, -25f - (i * 0.6f + 0.5f));
-                uneuneRightObjects.Add(uneuneRightObject);
+                GameObject objRight = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                MeshRenderer rightMeshRenderer = objRight.GetComponent<MeshRenderer>();
+                rightMeshRenderer.material = _uneuneMaterial;
+                objRight.transform.SetParent(rightUneUne.transform);
+                objRight.transform.localScale = scale;
+                objRight.transform.localPosition = new Vector3(1.5f + (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
+                objRight.transform.localRotation = Quaternion.Euler(0f, 0f, -25f - (i * 0.6f + 0.5f));
+                uneuneRightObjects.Add(objRight);
             }
+
+            
 
             leftUneUne.transform.SetParent(uneuneRoot.transform);
             leftUneUne.transform.position = new Vector3(-5f, 2.5f, 7f);
@@ -190,13 +206,15 @@ namespace NullponSpectrum.Controllers
 
         private bool _disposedValue;
         private IAudioTimeSource _timeSource;
+        public IDifficultyBeatmap Currentmap { get; private set; }
         private ColorScheme _colorScheme;
         private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, ColorScheme scheme, AudioSpectrum31 audioSpectrum)
+        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, ColorScheme scheme, AudioSpectrum31 audioSpectrum)
         {
             this._timeSource = source;
+            this.Currentmap = level;
             this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
         }

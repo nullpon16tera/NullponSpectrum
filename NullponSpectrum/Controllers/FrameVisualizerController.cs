@@ -18,8 +18,12 @@ namespace NullponSpectrum.Controllers
         private float scale = 2f;
         private int size = 4;
 
+        private Material _frameMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
         private List<GameObject> cubes = new List<GameObject>(4);
-        private List<Material> _materials = new List<Material>(4);
         private GameObject frameRoot = new GameObject("frameVisualizerRoot");
 
         public enum FramePosition {
@@ -49,23 +53,43 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            var bandType = this._audioSpectrum.Band;
-
-
             for (int i = 0; i < cubes.Count; i++)
             {
                 
                 var peak = this._audioSpectrum.PeakLevels[i] * scale;
-                var frameSize = 0.25f + ((size - i) * 0.2f) + (peak);
-                cubes[i].transform.localScale = new Vector3(frameSize, 1f, frameSize);
+                var frameSize = 0.25f + ((size - i) * 0.2f);
+                var peakSize = frameSize + peak;
+                cubes[i].transform.localScale = new Vector3(peakSize, 1f, peakSize);
 
                 var alpha = (this._audioSpectrum.PeakLevels[i] * size) % 1f;
-                var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
                 var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
-                var color = Color.HSVToRGB(colorLerp, 1f, alphaLerp);
-                _materials[i].SetColor("_Color", color.ColorWithAlpha(0.01f + alpha));
+
+                for (int r = 0; r < cubes[i].transform.childCount; r++)
+                {
+                    var childObj = cubes[i].transform.GetChild(r).gameObject;
+                    ChangeMaterialProperty(childObj, colorLerp, frameSize, peakSize);
+                }
             }
 
+        }
+
+        private void ChangeMaterialProperty(GameObject obj, float h, float frameSize, float peakSize)
+        {
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if ((frameSize + 0.025f) < peakSize)
+            {
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(1f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
+            else
+            {
+                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
         }
 
 
@@ -86,17 +110,15 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            GameObject parent = new GameObject("framePlaySpace");
+            _frameMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _frameMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _frameMaterial.SetFloat("_Brightness", 0f);
 
-            for (int r = 0; r < 4; r++)
-            {
-                Material material = new Material(Shader.Find("Custom/Glowing"));
-                material.SetColor("_Color", Color.black.ColorWithAlpha(0f));
-                material.SetFloat("_EnableColorInstancing", 1f);
-                material.SetFloat("_WhiteBoostType", 1f);
-                material.SetFloat("_NoiseDithering", 1f);
-                _materials.Add(material);
-            }
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+
+            GameObject parent = new GameObject("framePlaySpace");
 
             for (int i = 0; i < size; i++)
             {
@@ -139,14 +161,9 @@ namespace NullponSpectrum.Controllers
                 {
                     var childObj = clone.transform.GetChild(r).gameObject;
                     var meshRenderer = childObj.GetComponent<MeshRenderer>();
-                    meshRenderer.material = _materials[j];
+                    meshRenderer.material = _frameMaterial;
                 }
                 cubes.Add(clone);
-            }
-
-            foreach (GameObject obj in cubes)
-            {
-                obj.SetActive(obj);
             }
 
             if (PluginConfig.Instance.isFloorHeight)

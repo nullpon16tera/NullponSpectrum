@@ -15,9 +15,13 @@ namespace NullponSpectrum.Controllers
     {
         private int size = 31;
 
+        private Material _sphereMaterial;
+        private MaterialPropertyBlock _materialPropertyBlock;
+        private int visualizerTintColorID;
+        private int visualizerBrightnessID;
+
         private List<GameObject> leftSpheres = new List<GameObject>(31);
         private List<GameObject> rightSpheres = new List<GameObject>(31);
-        private List<Material> sphereMaterials = new List<Material>(31);
         private List<Vector3> leftSphereVector = new List<Vector3>(31);
         private List<Vector3> rightSphereVector = new List<Vector3>(31);
 
@@ -47,26 +51,41 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 var alpha = (this._audioSpectrum.PeakLevels[i] * 10f) % 1f;
-                sphereMaterials[i].SetColor("_Color", Color.HSVToRGB(alpha, 1f, Lighting(alpha, 1f)).ColorWithAlpha(Lighting(alpha, 0.8f)));
-
                 var positionSize = this._audioSpectrum.PeakLevels[i] * 5f;
 
-                Transform leftSphere = leftSpheres[i].transform;
+                var leftSphere = leftSpheres[i].transform;
                 var leftPos = leftSphereVector[i];
                 leftSphere.localPosition = new Vector3((leftPos.x + positionSize), (leftPos.y + positionSize), (leftPos.z + positionSize));
                 leftSphere.localScale = new Vector3(0.05f, this._audioSpectrum.PeakLevels[i] * (5f + leftPos.z), this._audioSpectrum.PeakLevels[i] * (5f + leftPos.z));
 
-                Transform rightSphere = rightSpheres[i].transform;
+                var rightSphere = rightSpheres[i].transform;
                 var rightPos = rightSphereVector[i];
                 rightSphere.localPosition = new Vector3((rightPos.x - positionSize), (rightPos.y + positionSize), (rightPos.z + positionSize));
                 rightSphere.localScale = new Vector3(0.05f, this._audioSpectrum.PeakLevels[i] * (5f + rightPos.z), this._audioSpectrum.PeakLevels[i] * (5f + rightPos.z));
+
+                ChangeMaterialProperty(leftSpheres[i], positionSize, alpha);
+                ChangeMaterialProperty(rightSpheres[i], positionSize, alpha);
             }
 
         }
 
-        private float Lighting(float alpha, float withAlpha)
+        private void ChangeMaterialProperty(GameObject obj, float size, float alpha)
         {
-            return 0.15f < alpha ? withAlpha : 0f;
+            MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if (0.05f < size)
+            {
+                var color = Color.HSVToRGB(alpha, 1f, 1f).ColorWithAlpha(0.6f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
+            else
+            {
+                var color = Color.HSVToRGB(alpha, 1f, 0f).ColorWithAlpha(0f);
+                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
+                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                renderer.SetPropertyBlock(_materialPropertyBlock);
+            }
         }
 
         public void Initialize()
@@ -91,22 +110,22 @@ namespace NullponSpectrum.Controllers
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
 
+            _sphereMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            _sphereMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
+            _sphereMaterial.SetFloat("_Brightness", 0f);
+
+            _materialPropertyBlock = new MaterialPropertyBlock();
+            visualizerTintColorID = Shader.PropertyToID("_TintColor");
+            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+
             UnityEngine.Random.InitState(RandomSeed());
 
             for (int i = 0; i < size; i++)
             {
-                Material sphereMaterial = new Material(Shader.Find("Custom/Glowing"));
-                sphereMaterial.SetColor("_Color", new Color(1f, 1f, 1f).ColorWithAlpha(1f));
-                sphereMaterial.SetFloat("_EnableColorInstancing", 1f);
-                sphereMaterial.SetFloat("_WhiteBoostType", 1f);
-                sphereMaterial.SetFloat("_NoiseDithering", 1f);
-                sphereMaterials.Add(sphereMaterial);
-
-
                 // Left Sphere GameObject create
                 GameObject leftSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 MeshRenderer leftMeshRenderer = leftSphere.GetComponent<MeshRenderer>();
-                leftMeshRenderer.material = sphereMaterials[i];
+                leftMeshRenderer.material = _sphereMaterial;
 
                 float randX = UnityEngine.Random.Range(5f, 15f);
                 float randY = UnityEngine.Random.Range(-1f, 10f);
@@ -126,7 +145,7 @@ namespace NullponSpectrum.Controllers
                 // Right Sphere GameObject create
                 GameObject rightSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 MeshRenderer rightMeshRenderer = rightSphere.GetComponent<MeshRenderer>();
-                rightMeshRenderer.material = sphereMaterials[i];
+                rightMeshRenderer.material = _sphereMaterial;
 
                 Transform rightSphereTransform = rightSphere.transform;
                 rightSphereTransform.localPosition = new Vector3(randX, randY, randZ);
