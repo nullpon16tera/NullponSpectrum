@@ -144,7 +144,33 @@ namespace NullponSpectrum.Views
         public bool UneUneVisualizer
         {
             get => conf.UneUneVisualizer;
-            set => conf.UneUneVisualizer = value;
+            set
+            {
+                if (value)
+                {
+                    if (conf.PonPonVisualizer) conf.PonPonVisualizer = false;
+                }
+
+                conf.UneUneVisualizer = value;
+
+                updateUI();
+            }
+        }
+
+        [UIValue("PonPonVisualizer")]
+        public bool PonPonVisualizer
+        {
+            get => conf.PonPonVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.UneUneVisualizer) conf.UneUneVisualizer = false;
+                }
+                conf.PonPonVisualizer = value;
+
+                updateUI();
+            }
         }
 
         protected override void OnDestroy()

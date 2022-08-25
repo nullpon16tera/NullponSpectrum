@@ -27,6 +27,7 @@
 							</horizontal>
 							<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 								<modifier value='TileVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Tile Visualizer'></modifier>
+								<modifier value='PonPonVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='PonPon Visualizer'></modifier>
 							</vertical>
 						</vertical>
 						<vertical child-control-height='false' child-expand-height='false' pad-top='15'>

@@ -35,12 +35,16 @@ namespace NullponSpectrum.Installers
                     this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
                 }
             }
-            if (PluginConfig.Instance.TileVisualizer)
+            if (PluginConfig.Instance.TileVisualizer || PluginConfig.Instance.PonPonVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum8>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum8))).AsCached();
                 if (PluginConfig.Instance.TileVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
+                }
+                if (PluginConfig.Instance.PonPonVisualizer)
+                {
+                    this.Container.BindInterfacesAndSelfTo<PonPonVisualizerController>().AsCached().NonLazy();
                 }
             }
             if (PluginConfig.Instance.MeshVisualizer)
@@ -66,6 +70,7 @@ namespace NullponSpectrum.Installers
                 {
                     this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
                 }
+                
             }
         }
     }
