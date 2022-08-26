@@ -89,6 +89,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.TileVisualizer = value;
@@ -107,6 +108,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -125,6 +127,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.StripeVisualizer = value;
@@ -145,6 +148,23 @@ namespace NullponSpectrum.Views
         {
             get => conf.UneUneVisualizer;
             set => conf.UneUneVisualizer = value;
+        }
+
+        [UIValue("RainbowVisualizer")]
+        public bool RainbowVisualizer
+        {
+            get => conf.RainbowVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                }
+                conf.RainbowVisualizer = value;
+                updateUI();
+            }
         }
 
         protected override void OnDestroy()

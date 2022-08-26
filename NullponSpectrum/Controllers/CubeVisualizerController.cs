@@ -45,7 +45,6 @@ namespace NullponSpectrum.Controllers
             }
 
             var alpha = (this._audioSpectrum.PeakLevels[0] * size) % 1f;
-            var alphaLerp = Mathf.Lerp(0f, 1f, alpha * 30f);
             var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
             var peak = this._audioSpectrum.PeakLevels[0] * scale;
             var cubeSize = 0.2f + peak * 1.3f;

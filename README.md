@@ -35,3 +35,4 @@ CustomPlatforms用に床オブジェクトの高さを調整できる設定を�
 - StripeVisualizer
 - SphereVisualizer
 - UneUneVisualizer
+- RainbowVisualizer

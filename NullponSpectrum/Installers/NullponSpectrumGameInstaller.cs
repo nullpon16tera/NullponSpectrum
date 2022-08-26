@@ -51,7 +51,7 @@ namespace NullponSpectrum.Installers
                     this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
                 }
             }
-            if (PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer)
+            if (PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum31>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum31))).AsCached();
                 if (PluginConfig.Instance.StripeVisualizer)
@@ -65,6 +65,10 @@ namespace NullponSpectrum.Installers
                 if (PluginConfig.Instance.UneUneVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
+                }
+                if (PluginConfig.Instance.RainbowVisualizer)
+                {
+                    this.Container.BindInterfacesAndSelfTo<RainbowVisualizerController>().AsCached().NonLazy();
                 }
             }
         }
