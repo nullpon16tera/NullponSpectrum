@@ -35,16 +35,12 @@ namespace NullponSpectrum.Installers
                     this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
                 }
             }
-            if (PluginConfig.Instance.TileVisualizer || PluginConfig.Instance.PonPonVisualizer)
+            if (PluginConfig.Instance.TileVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum8>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum8))).AsCached();
                 if (PluginConfig.Instance.TileVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.PonPonVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<PonPonVisualizerController>().AsCached().NonLazy();
                 }
             }
             if (PluginConfig.Instance.MeshVisualizer)
@@ -55,7 +51,7 @@ namespace NullponSpectrum.Installers
                     this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
                 }
             }
-            if (PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer)
+            if (PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum31>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum31))).AsCached();
                 if (PluginConfig.Instance.StripeVisualizer)
@@ -70,7 +66,10 @@ namespace NullponSpectrum.Installers
                 {
                     this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
                 }
-                
+                if (PluginConfig.Instance.RainbowVisualizer)
+                {
+                    this.Container.BindInterfacesAndSelfTo<RainbowVisualizerController>().AsCached().NonLazy();
+                }
             }
         }
     }

@@ -89,6 +89,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.TileVisualizer = value;
@@ -107,6 +108,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -125,6 +127,7 @@ namespace NullponSpectrum.Views
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                 }
 
                 conf.StripeVisualizer = value;
@@ -144,31 +147,22 @@ namespace NullponSpectrum.Views
         public bool UneUneVisualizer
         {
             get => conf.UneUneVisualizer;
-            set
-            {
-                if (value)
-                {
-                    if (conf.PonPonVisualizer) conf.PonPonVisualizer = false;
-                }
-
-                conf.UneUneVisualizer = value;
-
-                updateUI();
-            }
+            set => conf.UneUneVisualizer = value;
         }
 
-        [UIValue("PonPonVisualizer")]
-        public bool PonPonVisualizer
+        [UIValue("RainbowVisualizer")]
+        public bool RainbowVisualizer
         {
-            get => conf.PonPonVisualizer;
+            get => conf.RainbowVisualizer;
             set
             {
                 if (value)
                 {
-                    if (conf.UneUneVisualizer) conf.UneUneVisualizer = false;
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                 }
-                conf.PonPonVisualizer = value;
-
+                conf.RainbowVisualizer = value;
                 updateUI();
             }
         }
