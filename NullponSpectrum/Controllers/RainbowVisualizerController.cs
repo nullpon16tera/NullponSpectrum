@@ -47,7 +47,7 @@ namespace NullponSpectrum.Controllers
 
         private float Nomalize(float f)
         {
-            var result = Mathf.Lerp(6f, 0f, f);
+            var result = Mathf.Lerp(6f, 1f, f);
             return f * result;
         }
 
@@ -163,16 +163,6 @@ namespace NullponSpectrum.Controllers
 
             CreateFrameObject();
             CreateMainObject();
-
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = ponponRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                ponponRoot.transform.localPosition = rootPosition;
-            }
-
-            this.ponponRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform, false);
         }
 
         private void CreateMainObject()
@@ -185,12 +175,12 @@ namespace NullponSpectrum.Controllers
             visualizerTintColorID = Shader.PropertyToID("_TintColor");
             visualizerBrightnessID = Shader.PropertyToID("_Brightness");
 
-            leftFloorRoot.transform.SetParent(null, false);
+            leftFloorRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
             leftFloorRoot.transform.localScale = Vector3.one;
             leftFloorRoot.transform.localPosition = new Vector3(-1.5f, 0.01f, 0f);
             leftFloorRoot.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
-            rightFloorRoot.transform.SetParent(ponponRoot.transform, false);
+            rightFloorRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
             rightFloorRoot.transform.localScale = Vector3.one;
             rightFloorRoot.transform.localPosition = new Vector3(1.5f, 0.01f, 0f);
             rightFloorRoot.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);

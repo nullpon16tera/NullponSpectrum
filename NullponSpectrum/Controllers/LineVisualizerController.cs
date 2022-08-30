@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using System.Linq;
 
 namespace NullponSpectrum.Controllers
 {
@@ -15,19 +16,17 @@ namespace NullponSpectrum.Controllers
     public class LineVisualizerController : IInitializable, IDisposable
     {
         private Transform floorTransform;
-        private GameObject lineVisualizer = new GameObject("lineVisualizer");
+        private GameObject lineVisualizer;
         private LineRenderer lineRenderer;
         private Vector3[] linePositions = new Vector3[]
         {
             new Vector3(-0.495f, 0f, 0f),
-            new Vector3(-0.3f, 0.1f, 0f),
-            new Vector3(-0.1f, 0.1f, 0f),
-            new Vector3(0.1f, 0.1f, 0f),
-            new Vector3(0.3f, 0.1f, 0f),
+            new Vector3(-0.3f, 0f, 0f),
+            new Vector3(-0.1f, 0f, 0f),
+            new Vector3(0.1f, 0f, 0f),
+            new Vector3(0.3f, 0f, 0f),
             new Vector3(0.495f, 0f, 0f)
         };
-
-        private GameObject lineVisualizerRoot = new GameObject("lineVisualizerRoot");
 
         private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
@@ -49,28 +48,15 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            var bandType = this._audioSpectrum.Band;
-
-
-            for (int i = 0; i < linePositions.Length; i++)
+            foreach (var item in linePositions.Select((x, i) => (x, i)).Skip(1).Take(linePositions.Length - 2))
             {
-                if (i == 0 || linePositions.Length - 1 <= i)
-                {
-                    continue;
-                }
-
-                var alpha = this._audioSpectrum.PeakLevels[i] * 5f;
-                var line = linePositions[i];
+                var alpha = this._audioSpectrum.PeakLevels[item.i] * 5f;
+                var line = item.x;
                 line.z = alpha;
-                line.y = floorTransform.localPosition.y;
-                if (linePositions.Length - 1 <= i)
-                {
-                    continue;
-                }
-                lineRenderer.SetPosition(i, line);
+                //line.y = floorTransform.localPosition.y;
+                lineRenderer.SetPosition(item.i, line);
 
             }
-
         }
 
 
@@ -94,6 +80,11 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 5f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
+            lineVisualizer = new GameObject("lineVisualizer");
+            lineVisualizer.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
+            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
+            lineVisualizer.transform.localScale = new Vector3(3f, 1f, 2f);
+
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
             lineRenderer.useWorldSpace = false;
@@ -105,23 +96,7 @@ namespace NullponSpectrum.Controllers
             lineRenderer.endColor = this._colorScheme.saberBColor;
             lineRenderer.SetPositions(linePositions);
 
-            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
-            lineVisualizer.transform.localScale = new Vector3(3f, 0.05f, 2f);
-            lineVisualizer.transform.SetParent(this.lineVisualizerRoot.transform);
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = lineVisualizerRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-
-                var lineHeight = lineVisualizer.transform.localPosition;
-                lineHeight.y += PluginConfig.Instance.floorHeight * 0.01f;
-                lineVisualizer.transform.localPosition = lineHeight;
-
-                lineVisualizerRoot.transform.localPosition = rootPosition;
-            }
-
-            this.lineVisualizerRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
+            
         }
 
         private bool _disposedValue;

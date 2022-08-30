@@ -27,19 +27,8 @@ namespace NullponSpectrum.Controllers
         private List<GameObject> objRightB = new List<GameObject>(6);
 
         private Material _lineMaterial;
-        private Material _frameMaterial;
-        private Material _floorMaterial;
-        private GameObject tileVisualizerRoot = new GameObject("tileVisualizerRoot");
         private float leftHSV;
         private float rightHSV;
-
-        public enum FramePosition
-        {
-            Front,
-            Back,
-            Left,
-            Right,
-        };
 
         private void OnUpdatedRawSpectrums(AudioSpectrum8 obj)
         {
@@ -122,77 +111,8 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             
-
-
-            CreateFloorObject();
-            CreateFrameObject();
             CreateMainObject();
             CreateLineObject();
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = tileVisualizerRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                tileVisualizerRoot.transform.localPosition = rootPosition;
-            }
-
-            this.tileVisualizerRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
-        }
-
-        private void CreateFloorObject()
-        {
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            MeshRenderer floorRenderer = floor.GetComponent<MeshRenderer>();
-            _floorMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _floorMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
-            floorRenderer.material = _floorMaterial;
-
-            floor.transform.localScale = new Vector3(0.3f, 0.01f, 0.2f);
-            floor.transform.localPosition = new Vector3(0f, 0.005f, 0f);
-            floor.SetActive(floor);
-            floor.transform.SetParent(tileVisualizerRoot.transform);
-        }
-
-        private void CreateFrameObject()
-        {
-            GameObject parent = new GameObject("stripeVisualizerFrame");
-
-            _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
-            _frameMaterial.SetColor("_Color", Color.white.ColorWithAlpha(1f));
-
-            for (int i = 0; i < 4; i++)
-            {
-                GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-                Transform cubeTransform = child.transform;
-                if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
-                {
-                    cubeTransform.localScale = new Vector3(3.015f, 0.015f, 0.015f);
-                }
-                if (i == (int)FramePosition.Left || i == (int)FramePosition.Right)
-                {
-                    cubeTransform.localScale = new Vector3(0.015f, 0.015f, 2.015f);
-                }
-                switch (i)
-                {
-                    case (int)FramePosition.Front:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, 1f);
-                        break;
-                    case (int)FramePosition.Back:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, -1f);
-                        break;
-                    case (int)FramePosition.Left:
-                        cubeTransform.localPosition = new Vector3(-1.5f, 0.005f, 0f);
-                        break;
-                    case (int)FramePosition.Right:
-                        cubeTransform.localPosition = new Vector3(1.5f, 0.005f, 0f);
-                        break;
-                    default:
-                        break;
-                }
-                child.transform.SetParent(parent.transform);
-            }
-            parent.transform.SetParent(tileVisualizerRoot.transform);
         }
 
         private void CreateMainObject()
@@ -211,6 +131,7 @@ namespace NullponSpectrum.Controllers
             {
                 // Left object area
                 GameObject leftObjA = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                leftObjA.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform leftTransformA = leftObjA.transform;
                 leftTransformA.localScale = new Vector3(0.05f, 0.01f, 0.05f);
                 if (i % 2 == 0)
@@ -223,6 +144,7 @@ namespace NullponSpectrum.Controllers
                 }
 
                 GameObject rightObjA = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                rightObjA.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform rightTransformA = rightObjA.transform;
                 rightTransformA.localScale = new Vector3(0.05f, 0.01f, 0.05f);
                 if (i % 2 == 0)
@@ -239,13 +161,12 @@ namespace NullponSpectrum.Controllers
                 var rightMeshRenderer = rightObjA.GetComponent<MeshRenderer>();
                 rightMeshRenderer.material = _tileMaterial;
 
-                leftObjA.transform.SetParent(tileVisualizerRoot.transform);
-                rightObjA.transform.SetParent(tileVisualizerRoot.transform);
                 objLeftA.Add(leftObjA);
                 objRightA.Add(rightObjA);
 
                 // Right object area
                 GameObject leftObjB = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                leftObjB.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform leftTransformB = leftObjB.transform;
                 leftTransformB.localScale = new Vector3(0.05f, 0.01f, 0.05f);
                 if (i % 2 == 0)
@@ -258,6 +179,7 @@ namespace NullponSpectrum.Controllers
                 }
 
                 GameObject rightObjB = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                rightObjB.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform rightTransformB = rightObjB.transform;
                 rightTransformB.localScale = new Vector3(0.05f, 0.01f, 0.05f);
                 if (i % 2 == 0)
@@ -274,8 +196,6 @@ namespace NullponSpectrum.Controllers
                 var rightMeshRendererB = rightObjB.GetComponent<MeshRenderer>();
                 rightMeshRendererB.material = _tileMaterial;
 
-                leftObjB.transform.SetParent(tileVisualizerRoot.transform);
-                rightObjB.transform.SetParent(tileVisualizerRoot.transform);
                 objLeftB.Add(leftObjB);
                 objRightB.Add(rightObjB);
             }
@@ -291,24 +211,24 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < 5; i++)
             {
                 GameObject line = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                line.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform lineTransform = line.transform;
                 lineTransform.localScale = new Vector3(0.0025f, 0.01f, 0.2f);
                 lineTransform.localPosition = new Vector3(-1f + (0.5f * i), 0.0052f, 0f);
                 MeshRenderer lineMeshRendere = line.GetComponent<MeshRenderer>();
                 lineMeshRendere.material = _lineMaterial;
-                line.transform.SetParent(tileVisualizerRoot.transform);
                 line.SetActive(line);
             }
 
             for (int i = 0; i < 3; i++)
             {
                 GameObject line2 = GameObject.CreatePrimitive(PrimitiveType.Plane);
+                line2.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
                 Transform lineTransform2 = line2.transform;
                 lineTransform2.localScale = new Vector3(0.3f, 0.01f, 0.0025f);
                 lineTransform2.localPosition = new Vector3(0f, 0.0052f, -0.5f + (0.5f * i));
                 MeshRenderer lineMeshRendere2 = line2.GetComponent<MeshRenderer>();
                 lineMeshRendere2.material = _lineMaterial;
-                line2.transform.SetParent(tileVisualizerRoot.transform);
                 line2.SetActive(line2);
             }
         }

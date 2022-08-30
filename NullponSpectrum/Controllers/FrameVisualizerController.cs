@@ -24,7 +24,6 @@ namespace NullponSpectrum.Controllers
         private int visualizerBrightnessID;
 
         private List<GameObject> cubes = new List<GameObject>(4);
-        private GameObject frameRoot = new GameObject("frameVisualizerRoot");
 
         public enum FramePosition {
             Front,
@@ -61,7 +60,7 @@ namespace NullponSpectrum.Controllers
                 var peakSize = frameSize + peak;
                 cubes[i].transform.localScale = new Vector3(peakSize, 1f, peakSize);
 
-                var alpha = (this._audioSpectrum.PeakLevels[i] * size) % 1f;
+                var alpha = (this._audioSpectrum.PeakLevels[i] * 10);
                 var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
 
                 for (int r = 0; r < cubes[i].transform.childCount; r++)
@@ -78,6 +77,7 @@ namespace NullponSpectrum.Controllers
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             if ((frameSize + 0.025f) < peakSize)
             {
+                obj.SetActive(true);
                 var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(1f);
                 _materialPropertyBlock.SetColor(visualizerTintColorID, color);
                 _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
@@ -85,6 +85,7 @@ namespace NullponSpectrum.Controllers
             }
             else
             {
+                obj.SetActive(false);
                 var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
                 _materialPropertyBlock.SetColor(visualizerTintColorID, color);
                 _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
@@ -119,10 +120,12 @@ namespace NullponSpectrum.Controllers
             visualizerBrightnessID = Shader.PropertyToID("_Brightness");
 
             GameObject parent = new GameObject("framePlaySpace");
+            parent.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
 
             for (int i = 0; i < size; i++)
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                child.transform.SetParent(parent.transform, false);
 
                 Transform cubeTransform = child.transform;
                 if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
@@ -150,8 +153,6 @@ namespace NullponSpectrum.Controllers
                     default:
                         break;
                 }
-                child.transform.SetParent(parent.transform);
-                parent.transform.SetParent(frameRoot.transform);
             }
 
             for (int j = 0; j < size; j++)
@@ -165,15 +166,6 @@ namespace NullponSpectrum.Controllers
                 }
                 cubes.Add(clone);
             }
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = frameRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                frameRoot.transform.localPosition = rootPosition;
-            }
-
-            this.frameRoot.transform.SetParent(FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         public GameObject Clone(GameObject go)

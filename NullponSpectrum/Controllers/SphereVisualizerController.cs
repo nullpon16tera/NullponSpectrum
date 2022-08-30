@@ -157,15 +157,6 @@ namespace NullponSpectrum.Controllers
 
                 rightSpheres.Add(rightSphere);
             }
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = sphereRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                sphereRoot.transform.localPosition = rootPosition;
-            }
-
-            this.sphereRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         public int RandomSeed()

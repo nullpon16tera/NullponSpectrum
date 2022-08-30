@@ -45,7 +45,7 @@
 						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 							<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
 							<modifier value='SphereVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Sphere Visualizer'></modifier>
-							<modifier value='UneUneVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='UneUne Visualizer'></modifier>
+							<modifier value='UneUneVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='UneUne Visualizer'></modifier>
 							<modifier value='RainbowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='Rainbow Visualizer'></modifier>
 						</vertical>
 					</vertical>
@@ -53,16 +53,21 @@
 			</vertical>
 		</tab>
 		<tab tags='spectrum-tab' tab-name='Settings'>
-			<vertical child-control-height='false' child-expand-height='false'>
+			<vertical>
 				<horizontal pad-bottom='2'>
-					<vertical child-control-height='false' child-expand-height='false'>
-						<bool-setting value='isFloorHeight' apply-on-change='true' text='Enable Floor Height' hover-hint='Enable Adjust floor height.'></bool-setting>
+					<vertical child-control-height='false'>
+						<horizontal>
+							<bool-setting value='enableFloorObject' apply-on-change='true' text='Enable Floor Object' hover-hint='Enable floor object.'></bool-setting>
+						</horizontal>
+						<horizontal>
+							<bool-setting value='isFloorHeight' apply-on-change='true' text='Enable Floor Height' hover-hint='Enable Adjust floor height.'></bool-setting>
+						</horizontal>
 						<horizontal>
 							<slider-setting value='floorHeight' apply-on-change='true' text='Floor Height' hover-hint='The default value is 0.01' min='0' max='2' increment='0.05'></slider-setting>
 						</horizontal>
 					</vertical>
 				</horizontal>
-				<horizontal child-control-height='false' child-expand-height='false'>
+				<horizontal child-control-height='false'>
 					<dropdown-list-setting value='listChoice' choices='listOptions' apply-on-change='true' text='UneUne Band Select' />
 				</horizontal>
 			</vertical>

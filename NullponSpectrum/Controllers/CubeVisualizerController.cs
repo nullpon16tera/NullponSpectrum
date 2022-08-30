@@ -22,7 +22,6 @@ namespace NullponSpectrum.Controllers
         private int visualizerBrightnessID;
 
         private List<GameObject> cubes = new List<GameObject>(4);
-        private GameObject cubeRoot = new GameObject("cubeVisualizerRoot");
 
         private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
@@ -116,6 +115,8 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                child.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
+
                 MeshRenderer childMeshRenderer = child.GetComponent<MeshRenderer>();
                 childMeshRenderer.material = _cubeMaterial;
                 
@@ -141,19 +142,9 @@ namespace NullponSpectrum.Controllers
                     default:
                         break;
                 }
-                child.transform.SetParent(cubeRoot.transform);
 
                 cubes.Add(child);
             }
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = cubeRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                cubeRoot.transform.localPosition = rootPosition;
-            }
-
-            this.cubeRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private bool _disposedValue;

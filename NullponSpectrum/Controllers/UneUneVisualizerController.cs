@@ -193,15 +193,6 @@ namespace NullponSpectrum.Controllers
             rightUneUne.transform.SetParent(uneuneRoot.transform);
             rightUneUne.transform.position = new Vector3(5f, 2.5f, 7f);
             //rightUneUne.transform.localRotation = Quaternion.Euler(0f, 0f, -45f);
-
-            if (PluginConfig.Instance.isFloorHeight)
-            {
-                var rootPosition = uneuneRoot.transform.localPosition;
-                rootPosition.y = PluginConfig.Instance.floorHeight * 0.01f;
-                uneuneRoot.transform.localPosition = rootPosition;
-            }
-
-            this.uneuneRoot.transform.SetParent(Utilities.FloorAdjustorUtil.NullponSpectrumFloor.transform);
         }
 
         private bool _disposedValue;

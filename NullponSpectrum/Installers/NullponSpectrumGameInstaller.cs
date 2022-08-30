@@ -18,6 +18,7 @@ namespace NullponSpectrum.Installers
                 return;
             }
             this.Container.BindInterfacesAndSelfTo<Utilities.FloorAdjustorUtil>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<FloorViewController>().AsCached().NonLazy();
             //this.Container.BindInterfacesAndSelfTo<AudioSpectrum>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum))).AsCached();
             if (PluginConfig.Instance.CubeVisualizer || PluginConfig.Instance.FrameVisualizer || PluginConfig.Instance.LineVisualizer)
             {
