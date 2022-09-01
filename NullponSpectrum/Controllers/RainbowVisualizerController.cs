@@ -18,8 +18,7 @@ namespace NullponSpectrum.Controllers
 
         private Material _material;
         private MaterialPropertyBlock _materialPropertyBlock;
-        private int visualizerTintColorID;
-        private int visualizerBrightnessID;
+        private int visualizerColorID;
 
         private List<GameObject> leftObject = new List<GameObject>(28);
         private List<GameObject> rightObject = new List<GameObject>(28);
@@ -123,17 +122,15 @@ namespace NullponSpectrum.Controllers
                 if (min < tmp)
                 {
                     obj.SetActive(true);
-                    var color = Color.HSVToRGB(h[index], 1f, 1f).ColorWithAlpha(0.8f);
-                    _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                    _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                    var color = Color.HSVToRGB(h[index], 1f, 1f).ColorWithAlpha(0.7f);
+                    _materialPropertyBlock.SetColor(visualizerColorID, color);
                     renderer.SetPropertyBlock(_materialPropertyBlock);
                 }
                 else
                 {
                     obj.SetActive(false);
                     var color = Color.HSVToRGB(h[index], 1f, 0f).ColorWithAlpha(0f);
-                    _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                    _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                    _materialPropertyBlock.SetColor(visualizerColorID, color);
                     renderer.SetPropertyBlock(_materialPropertyBlock);
                 }
             }
@@ -161,28 +158,25 @@ namespace NullponSpectrum.Controllers
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
 
-            CreateFrameObject();
             CreateMainObject();
         }
 
         private void CreateMainObject()
         {
-            _material = new Material(Shader.Find("Custom/SaberBlade"));
-            _material.SetColor("_TintColor", Color.red.ColorWithAlpha(1f));
-            _material.SetFloat("_Brightness", 0f);
+            _material = new Material(Shader.Find("Custom/Glowing"));
+            _material.SetColor("_Color", Color.red.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
-            visualizerTintColorID = Shader.PropertyToID("_TintColor");
-            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+            visualizerColorID = Shader.PropertyToID("_Color");
 
             leftFloorRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
             leftFloorRoot.transform.localScale = Vector3.one;
-            leftFloorRoot.transform.localPosition = new Vector3(-1.5f, 0.01f, 0f);
+            leftFloorRoot.transform.localPosition = new Vector3(-1.5f, 0.0001f, 0f);
             leftFloorRoot.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
 
             rightFloorRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
             rightFloorRoot.transform.localScale = Vector3.one;
-            rightFloorRoot.transform.localPosition = new Vector3(1.5f, 0.01f, 0f);
+            rightFloorRoot.transform.localPosition = new Vector3(1.5f, 0.0001f, 0f);
             rightFloorRoot.transform.localRotation = Quaternion.Euler(0f, -90f, 0f);
 
 
@@ -220,58 +214,6 @@ namespace NullponSpectrum.Controllers
                 childRightMeshRenderer.material = _material;
                 rightObject.Add(parentObjectRight);
             }
-        }
-
-        private void CreateFloorObject()
-        {
-            GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            MeshRenderer floorRenderer = floor.GetComponent<MeshRenderer>();
-            floorRenderer.material = new Material(Shader.Find("Custom/SaberBlade"));
-            floorRenderer.material.SetColor("_TintColor", Color.black.ColorWithAlpha(0f));
-            floorRenderer.material.SetFloat("_Brightness", 0f);
-
-            floor.transform.localScale = new Vector3(0.3f, 0.01f, 0.2f);
-            floor.transform.localPosition = new Vector3(0f, 0.005f, 0f);
-            floor.transform.SetParent(ponponRoot.transform);
-        }
-
-        private void CreateFrameObject()
-        {
-            GameObject parent = new GameObject("ponponVisualizerFrame");
-
-            for (int i = 0; i < 4; i++)
-            {
-                GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-                Transform cubeTransform = child.transform;
-                if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
-                {
-                    cubeTransform.localScale = new Vector3(3.015f, 0.015f, 0.015f);
-                }
-                if (i == (int)FramePosition.Left || i == (int)FramePosition.Right)
-                {
-                    cubeTransform.localScale = new Vector3(0.015f, 0.015f, 2.015f);
-                }
-                switch (i)
-                {
-                    case (int)FramePosition.Front:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, 1f);
-                        break;
-                    case (int)FramePosition.Back:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, -1f);
-                        break;
-                    case (int)FramePosition.Left:
-                        cubeTransform.localPosition = new Vector3(-1.5f, 0.005f, 0f);
-                        break;
-                    case (int)FramePosition.Right:
-                        cubeTransform.localPosition = new Vector3(1.5f, 0.005f, 0f);
-                        break;
-                    default:
-                        break;
-                }
-                child.transform.SetParent(parent.transform);
-            }
-            parent.transform.SetParent(ponponRoot.transform);
         }
 
         private bool _disposedValue;

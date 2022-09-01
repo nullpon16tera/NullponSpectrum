@@ -22,6 +22,9 @@ namespace NullponSpectrum.Controllers
 
         private List<GameObject> leftPlane = new List<GameObject>(31);
         private List<GameObject> rightPlane = new List<GameObject>(31);
+
+        private GameObject stripeVisualizerRoot;
+
         private float leftHSV;
         private float rightHSV;
 
@@ -112,19 +115,20 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 0.001f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
+            stripeVisualizerRoot = new GameObject("stripeVisualizerRoot");
+            stripeVisualizerRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            stripeVisualizerRoot.transform.localPosition = new Vector3(0f, 0.0001f, 0f);
 
             CreateMainObject();
         }
 
         private void CreateMainObject()
         {
-            _stripeMaterial = new Material(Shader.Find("Custom/SaberBlade"));
-            _stripeMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
-            _stripeMaterial.SetFloat("_Brightness", 0f);
+            _stripeMaterial = new Material(Shader.Find("Custom/Glowing"));
+            _stripeMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
-            visualizerTintColorID = Shader.PropertyToID("_TintColor");
-            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+            visualizerTintColorID = Shader.PropertyToID("_Color");
 
             var scale = new Vector3(0.0035f, 0.01f, 0.2f);
 
@@ -132,19 +136,19 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 GameObject leftObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                leftObj.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
+                leftObj.transform.SetParent(stripeVisualizerRoot.transform, false);
                 Transform leftTransform = leftObj.transform;
                 leftTransform.localScale = scale;
-                leftTransform.localPosition = new Vector3(-(0.0035f + (0.049f * i)), 0.0051f, 0f);
+                leftTransform.localPosition = new Vector3(-(0.0035f + (0.049f * i)), 0f, 0f);
                 var leftMeshRenderer = leftObj.GetComponent<MeshRenderer>();
                 leftMeshRenderer.material = _stripeMaterial;
                 leftPlane.Add(leftObj);
 
                 GameObject rightObj = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                rightObj.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
+                rightObj.transform.SetParent(stripeVisualizerRoot.transform, false);
                 Transform rightTransform = rightObj.transform;
                 rightTransform.localScale = scale;
-                rightTransform.localPosition = new Vector3((0.0035f + (0.049f * i)), 0.0051f, 0f);
+                rightTransform.localPosition = new Vector3((0.0035f + (0.049f * i)), 0f, 0f);
                 var rightMeshRenderer = rightObj.GetComponent<MeshRenderer>();
                 rightMeshRenderer.material = _stripeMaterial;
                 rightPlane.Add(rightObj);

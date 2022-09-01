@@ -18,10 +18,11 @@ namespace NullponSpectrum.Controllers
 
         private Material _cubeMaterial;
         private MaterialPropertyBlock _materialPropertyBlock;
-        private int visualizerTintColorID;
-        private int visualizerBrightnessID;
+        private int visualizerColorID;
 
         private List<GameObject> cubes = new List<GameObject>(4);
+
+        private GameObject cubeVisualizerRoot;
 
         private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
         {
@@ -68,18 +69,16 @@ namespace NullponSpectrum.Controllers
         private void ChangeMaterialProperty(GameObject obj, float h, float size)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
-            if (0.21f < size)
+            if (0.2001f < size)
             {
-                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.8f);
-                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.7f);
+                _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
                 var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
-                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
         }
@@ -101,21 +100,23 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
+            cubeVisualizerRoot = new GameObject("cubeVisualizerRoot");
+            cubeVisualizerRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            cubeVisualizerRoot.transform.localPosition = new Vector3(0f, 0.0001f, 0f);
+
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
-            _cubeMaterial = new Material(Shader.Find("Custom/SaberBlade"));
-            _cubeMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
-            _cubeMaterial.SetFloat("_Brightness", 0f);
+            _cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
+            _cubeMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
-            visualizerTintColorID = Shader.PropertyToID("_TintColor");
-            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+            visualizerColorID = Shader.PropertyToID("_Color");
 
             for (int i = 0; i < size; i++)
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                child.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
+                child.transform.SetParent(cubeVisualizerRoot.transform, false);
 
                 MeshRenderer childMeshRenderer = child.GetComponent<MeshRenderer>();
                 childMeshRenderer.material = _cubeMaterial;

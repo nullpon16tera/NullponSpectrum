@@ -20,10 +20,11 @@ namespace NullponSpectrum.Controllers
 
         private Material _frameMaterial;
         private MaterialPropertyBlock _materialPropertyBlock;
-        private int visualizerTintColorID;
-        private int visualizerBrightnessID;
+        private int visualizerColorID;
 
         private List<GameObject> cubes = new List<GameObject>(4);
+
+        private GameObject frameVisualizerRoot;
 
         public enum FramePosition {
             Front,
@@ -78,17 +79,15 @@ namespace NullponSpectrum.Controllers
             if ((frameSize + 0.025f) < peakSize)
             {
                 obj.SetActive(true);
-                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(1f);
-                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
+                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.8f);
+                _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
                 obj.SetActive(false);
                 var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
-                _materialPropertyBlock.SetColor(visualizerTintColorID, color);
-                _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
+                _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
         }
@@ -111,21 +110,21 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            _frameMaterial = new Material(Shader.Find("Custom/SaberBlade"));
-            _frameMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
-            _frameMaterial.SetFloat("_Brightness", 0f);
+            _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
+            _frameMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
-            visualizerTintColorID = Shader.PropertyToID("_TintColor");
-            visualizerBrightnessID = Shader.PropertyToID("_Brightness");
+            visualizerColorID = Shader.PropertyToID("_Color");
 
-            GameObject parent = new GameObject("framePlaySpace");
-            parent.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            frameVisualizerRoot = new GameObject("frameVisualizerRoot");
+            frameVisualizerRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            frameVisualizerRoot.transform.localPosition = new Vector3(0f, 0.0001f, 0f);
 
             for (int i = 0; i < size; i++)
             {
                 GameObject child = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                child.transform.SetParent(parent.transform, false);
+                child.transform.SetParent(frameVisualizerRoot.transform, false);
+                child.SetActive(false);
 
                 Transform cubeTransform = child.transform;
                 if (i == (int)FramePosition.Front || i == (int)FramePosition.Back)
@@ -139,16 +138,16 @@ namespace NullponSpectrum.Controllers
                 switch (i)
                 {
                     case (int)FramePosition.Front:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, 1f);
+                        cubeTransform.localPosition = new Vector3(0f, 0f, 1f);
                         break;
                     case (int)FramePosition.Back:
-                        cubeTransform.localPosition = new Vector3(0f, 0.005f, -1f);
+                        cubeTransform.localPosition = new Vector3(0f, 0f, -1f);
                         break;
                     case (int)FramePosition.Left:
-                        cubeTransform.localPosition = new Vector3(-1.5f, 0.005f, 0f);
+                        cubeTransform.localPosition = new Vector3(-1.5f, 0f, 0f);
                         break;
                     case (int)FramePosition.Right:
-                        cubeTransform.localPosition = new Vector3(1.5f, 0.005f, 0f);
+                        cubeTransform.localPosition = new Vector3(1.5f, 0f, 0f);
                         break;
                     default:
                         break;
@@ -157,10 +156,11 @@ namespace NullponSpectrum.Controllers
 
             for (int j = 0; j < size; j++)
             {
-                var clone = Clone(parent);
+                var clone = Clone(frameVisualizerRoot);
                 for (int r = 0; r < clone.transform.childCount; r++)
                 {
                     var childObj = clone.transform.GetChild(r).gameObject;
+                    childObj.SetActive(true);
                     var meshRenderer = childObj.GetComponent<MeshRenderer>();
                     meshRenderer.material = _frameMaterial;
                 }

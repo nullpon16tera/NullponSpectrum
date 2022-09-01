@@ -50,7 +50,7 @@ namespace NullponSpectrum.Controllers
 
             foreach (var item in linePositions.Select((x, i) => (x, i)).Skip(1).Take(linePositions.Length - 2))
             {
-                var alpha = this._audioSpectrum.PeakLevels[item.i] * 5f;
+                var alpha = this._audioSpectrum.PeakLevels[item.i - 1] * 5f;
                 var line = item.x;
                 line.z = alpha;
                 //line.y = floorTransform.localPosition.y;
@@ -81,8 +81,8 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             lineVisualizer = new GameObject("lineVisualizer");
-            lineVisualizer.transform.SetParent(FloorViewController.visualizerFloorRoot.transform);
-            lineVisualizer.transform.localPosition = new Vector3(0f, 0.016f, -0.8f);
+            lineVisualizer.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            lineVisualizer.transform.localPosition = new Vector3(0f, 0.0001f, -0.8f);
             lineVisualizer.transform.localScale = new Vector3(3f, 1f, 2f);
 
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();

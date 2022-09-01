@@ -1,4 +1,5 @@
-﻿using IPA.Loader;
+﻿using NullponSpectrum.Configuration;
+using IPA.Loader;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace NullponSpectrum.Utilities
     {
         public static bool IsInstallVMCAvatar { get; private set; }
         public static bool IsInstallNalulunaAvatars { get; private set; }
+        public static bool IsFloorEnable { get; set; } = false;
         private bool FloorFlag = false;
 
         public static GameObject NullponSpectrumFloor;
@@ -28,6 +30,16 @@ namespace NullponSpectrum.Utilities
             Environment = GameObject.Find("Environment");
             CustomPlatforms = GameObject.Find("CustomPlatforms");
             PlayersPlace = GameObject.Find("Environment/PlayersPlace");
+
+            var conf = PluginConfig.Instance;
+            if (conf.LineVisualizer || conf.MeshVisualizer || conf.StripeVisualizer || conf.TileVisualizer || conf.RainbowVisualizer)
+            {
+                IsFloorEnable = true;
+            }
+            else
+            {
+                IsFloorEnable = false;
+            }
         }
 
         private void Start()
