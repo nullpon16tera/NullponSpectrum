@@ -15,7 +15,6 @@ namespace NullponSpectrum.Controllers
     /// </summary>
     public class LineVisualizerController : IInitializable, IDisposable
     {
-        private Transform floorTransform;
         private GameObject lineVisualizer;
         private LineRenderer lineRenderer;
         private Vector3[] linePositions = new Vector3[30];
@@ -80,8 +79,6 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-
-            this.floorTransform = FloorAdjustorUtil.NullponSpectrumFloor.transform;
 
             this._audioSpectrum.Band = AudioSpectrum31.BandType.ThirtyOneBand;
             this._audioSpectrum.fallSpeed = 0.8f;
