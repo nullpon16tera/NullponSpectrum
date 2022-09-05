@@ -27,8 +27,8 @@ namespace NullponSpectrum.Controllers
 
         private GameObject tileFloorRoot;
         private Material _lineMaterial;
-        private float leftHSV;
-        private float rightHSV;
+        private float[] leftHSV = new float[3];
+        private float[] rightHSV = new float[3];
 
         private void OnUpdatedRawSpectrums(AudioSpectrum8 obj)
         {
@@ -62,18 +62,18 @@ namespace NullponSpectrum.Controllers
 
         }
 
-        private void ChangeMaterialProperty(GameObject obj, float h, float alpha)
+        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             if (0.15f < alpha)
             {
-                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.7f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
                 _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
-                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 0f).ColorWithAlpha(0f);
                 _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
@@ -98,8 +98,12 @@ namespace NullponSpectrum.Controllers
 
             Color.RGBToHSV(this._colorScheme.saberAColor, out leftH, out leftS, out leftV);
             Color.RGBToHSV(this._colorScheme.saberBColor, out rightH, out rightS, out rightV);
-            this.leftHSV = leftH;
-            this.rightHSV = rightH;
+            this.leftHSV[0] = leftH;
+            this.rightHSV[0] = rightH;
+            this.leftHSV[1] = leftS;
+            this.rightHSV[1] = rightS;
+            this.leftHSV[2] = leftV;
+            this.rightHSV[2] = rightV;
 
 
             this._audioSpectrum.Band = AudioSpectrum8.BandType.EightBand;

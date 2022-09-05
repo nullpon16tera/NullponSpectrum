@@ -28,8 +28,8 @@ namespace NullponSpectrum.Controllers
 
         private int choice = 6;
 
-        private float leftHSV;
-        private float rightHSV;
+        private float[] leftHSV = new float[3];
+        private float[] rightHSV = new float[3];
         private float[] s_shift = new float[31];
         private float updateTime = 0;
         /// <summary>
@@ -94,20 +94,20 @@ namespace NullponSpectrum.Controllers
             }
         }
 
-        private void UneUne(GameObject obj,  float h, int index, float alpha, float amplitude)
+        private void UneUne(GameObject obj,  float[] hsv, int index, float alpha, float amplitude)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             obj.transform.localScale = new Vector3(0.5f + alpha, 0.2f + this.s_shift[index], 0.5f);
             if (0.5f < obj.transform.localScale.y)
             {
-                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.9f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.9f);
                 _materialPropertyBlock.SetColor(visualizerTintColorID, color);
                 _materialPropertyBlock.SetFloat(visualizerBrightnessID, 1f);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
-                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 0f).ColorWithAlpha(0f);
                 _materialPropertyBlock.SetColor(visualizerTintColorID, color);
                 _materialPropertyBlock.SetFloat(visualizerBrightnessID, 0f);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
@@ -140,8 +140,12 @@ namespace NullponSpectrum.Controllers
 
             Color.RGBToHSV(this._colorScheme.saberAColor, out leftH, out leftS, out leftV);
             Color.RGBToHSV(this._colorScheme.saberBColor, out rightH, out rightS, out rightV);
-            this.leftHSV = leftH;
-            this.rightHSV = rightH;
+            this.leftHSV[0] = leftH;
+            this.rightHSV[0] = rightH;
+            this.leftHSV[1] = leftS;
+            this.rightHSV[1] = rightS;
+            this.leftHSV[2] = leftV;
+            this.rightHSV[2] = rightV;
 
             choice = PluginConfig.Instance.listChoice;
 
@@ -168,7 +172,7 @@ namespace NullponSpectrum.Controllers
                 GameObject objLeft = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 MeshRenderer leftMeshRenderer = objLeft.GetComponent<MeshRenderer>();
                 leftMeshRenderer.material = _uneuneMaterial;
-                objLeft.transform.SetParent(leftUneUne.transform);
+                objLeft.transform.SetParent(leftUneUne.transform, false);
                 objLeft.transform.localScale = scale;
                 objLeft.transform.localPosition = new Vector3(-1.5f - (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
                 objLeft.transform.localRotation = Quaternion.Euler(0f, 0f, 25f + (i * 0.6f + 0.5f));
@@ -177,7 +181,7 @@ namespace NullponSpectrum.Controllers
                 GameObject objRight = GameObject.CreatePrimitive(PrimitiveType.Capsule);
                 MeshRenderer rightMeshRenderer = objRight.GetComponent<MeshRenderer>();
                 rightMeshRenderer.material = _uneuneMaterial;
-                objRight.transform.SetParent(rightUneUne.transform);
+                objRight.transform.SetParent(rightUneUne.transform, false);
                 objRight.transform.localScale = scale;
                 objRight.transform.localPosition = new Vector3(1.5f + (i * 0.25f), 0f, (size - i) * 2.5f + 1.2f);
                 objRight.transform.localRotation = Quaternion.Euler(0f, 0f, -25f - (i * 0.6f + 0.5f));

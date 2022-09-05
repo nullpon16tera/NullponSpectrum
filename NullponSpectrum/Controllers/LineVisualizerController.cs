@@ -18,17 +18,17 @@ namespace NullponSpectrum.Controllers
         private Transform floorTransform;
         private GameObject lineVisualizer;
         private LineRenderer lineRenderer;
-        private Vector3[] linePositions = new Vector3[]
-        {
-            new Vector3(-0.495f, 0f, 0f),
-            new Vector3(-0.3f, 0f, 0f),
-            new Vector3(-0.1f, 0f, 0f),
-            new Vector3(0.1f, 0f, 0f),
-            new Vector3(0.3f, 0f, 0f),
-            new Vector3(0.495f, 0f, 0f)
-        };
+        private Vector3[] linePositions = new Vector3[30];
+        private float updateTime = 0;
+        private static readonly float s_updateThresholdTime = 0.025f;
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
+        private float Nomalize(float f)
+        {
+            var result = Mathf.Lerp(2f, 0.8f, f);
+            return f * result;
+        }
+
+        private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -41,20 +41,28 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum4 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
             if (!audio)
             {
                 return;
             }
 
+            this.updateTime += Time.deltaTime;
+            var bpmSpeed = -(this.Currentmap.level.beatsPerMinute * 0.00001f);
+            var needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
+
             foreach (var item in linePositions.Select((x, i) => (x, i)).Skip(1).Take(linePositions.Length - 2))
             {
-                var alpha = this._audioSpectrum.PeakLevels[item.i - 1] * 5f;
-                var line = item.x;
-                line.z = alpha;
-                //line.y = floorTransform.localPosition.y;
-                lineRenderer.SetPosition(item.i, line);
+
+                if (needUpdate)
+                {
+                    var alpha = Mathf.Lerp(0f, 0.8f, this._audioSpectrum.PeakLevels[item.i - 1] * 5f);
+                    var line = item.x;
+                    line.z = this.Nomalize(alpha);
+                    //line.y = floorTransform.localPosition.y;
+                    lineRenderer.SetPosition(item.i, line);
+                }
 
             }
         }
@@ -75,9 +83,9 @@ namespace NullponSpectrum.Controllers
 
             this.floorTransform = FloorAdjustorUtil.NullponSpectrumFloor.transform;
 
-            this._audioSpectrum.Band = AudioSpectrum4.BandType.FourBand;
-            this._audioSpectrum.fallSpeed = 0.3f;
-            this._audioSpectrum.sensibility = 5f;
+            this._audioSpectrum.Band = AudioSpectrum31.BandType.ThirtyOneBand;
+            this._audioSpectrum.fallSpeed = 0.8f;
+            this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
             lineVisualizer = new GameObject("lineVisualizer");
@@ -85,13 +93,22 @@ namespace NullponSpectrum.Controllers
             lineVisualizer.transform.localPosition = new Vector3(0f, 0.0001f, -0.8f);
             lineVisualizer.transform.localScale = new Vector3(3f, 1f, 2f);
 
+            for (int i = 0; i < 30; i++)
+            {
+                linePositions[i] = new Vector3(-0.495f + (i * 0.03425f), 0f, 0f);
+            }
+
+            Plugin.Log.Debug($"LineVisualizer: " + linePositions.Length);
+
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
             lineRenderer.useWorldSpace = false;
             lineRenderer.positionCount = linePositions.Length;
+            lineRenderer.numCapVertices = 10;
+            lineRenderer.numCornerVertices = 10;
             lineRenderer.alignment = LineAlignment.View;
-            lineRenderer.startWidth = 0.025f;
-            lineRenderer.endWidth = 0.025f;
+            lineRenderer.startWidth = 0.055f;
+            lineRenderer.endWidth = 0.055f;
             lineRenderer.startColor = this._colorScheme.saberAColor;
             lineRenderer.endColor = this._colorScheme.saberBColor;
             lineRenderer.SetPositions(linePositions);
@@ -100,12 +117,14 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
+        public IDifficultyBeatmap Currentmap { get; private set; }
         private ColorScheme _colorScheme;
-        private AudioSpectrum4 _audioSpectrum;
+        private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum4 audioSpectrum)
+        public void Constructor(IDifficultyBeatmap level, ColorScheme scheme, AudioSpectrum31 audioSpectrum)
         {
+            this.Currentmap = level;
             this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
         }

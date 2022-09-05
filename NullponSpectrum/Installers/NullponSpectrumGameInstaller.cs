@@ -20,7 +20,7 @@ namespace NullponSpectrum.Installers
             this.Container.BindInterfacesAndSelfTo<Utilities.FloorAdjustorUtil>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
             this.Container.BindInterfacesAndSelfTo<FloorViewController>().AsCached().NonLazy();
             //this.Container.BindInterfacesAndSelfTo<AudioSpectrum>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum))).AsCached();
-            if (PluginConfig.Instance.CubeVisualizer || PluginConfig.Instance.FrameVisualizer || PluginConfig.Instance.LineVisualizer)
+            if (PluginConfig.Instance.CubeVisualizer || PluginConfig.Instance.FrameVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum4>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum4))).AsCached();
                 if (PluginConfig.Instance.CubeVisualizer)
@@ -30,10 +30,6 @@ namespace NullponSpectrum.Installers
                 if (PluginConfig.Instance.FrameVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<FrameVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.LineVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
                 }
             }
             if (PluginConfig.Instance.TileVisualizer)
@@ -52,9 +48,13 @@ namespace NullponSpectrum.Installers
                     this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
                 }
             }
-            if (PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
+            if (PluginConfig.Instance.LineVisualizer || PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<AudioSpectrum31>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum31))).AsCached();
+                if (PluginConfig.Instance.LineVisualizer)
+                {
+                    this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
+                }
                 if (PluginConfig.Instance.StripeVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<StripeVisualizerController>().AsCached().NonLazy();
