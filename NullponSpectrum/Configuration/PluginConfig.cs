@@ -13,6 +13,7 @@ namespace NullponSpectrum.Configuration
         public virtual bool isFloorHeight { get; set; } = false;
         public virtual float floorHeight { get; set; } = 0f;
         public virtual bool enableFloorObject { get; set; } = true;
+        public virtual bool enableMerihari { get; set; } = true;
         public virtual int listChoice { get; set; } = 6;
         public virtual bool CubeVisualizer { get; set; } = false;
         public virtual bool FrameVisualizer { get; set; } = false;

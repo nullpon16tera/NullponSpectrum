@@ -27,8 +27,6 @@ namespace NullponSpectrum.Controllers
 
         private GameObject tileFloorRoot;
         private Material _lineMaterial;
-        private float[] leftHSV = new float[3];
-        private float[] rightHSV = new float[3];
 
         private void OnUpdatedRawSpectrums(AudioSpectrum8 obj)
         {
@@ -45,6 +43,8 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum8 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
+
             if (!audio)
             {
                 return;
@@ -52,19 +52,34 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                var alpha = (this._audioSpectrum.Levels[size - i] * 10f) % 1f;
-                ChangeMaterialProperty(objLeftA[i], leftHSV, alpha);
-                ChangeMaterialProperty(objRightA[i], rightHSV, alpha);
-                ChangeMaterialProperty(objLeftB[i], leftHSV, alpha);
-                ChangeMaterialProperty(objRightB[i], rightHSV, alpha);
+                var peakLevels = this._audioSpectrum.Levels[size - 1 - i];
+                var alpha = peakLevels * 10f;
+                if (needUpdate)
+                {
+                    ChangeMaterialProperty(objLeftA[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), alpha, peakLevels);
+                    ChangeMaterialProperty(objRightA[i], Utilities.VisualizerUtil.GetRightSaberHSV(), alpha, peakLevels);
+                    ChangeMaterialProperty(objLeftB[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), alpha, peakLevels);
+                    ChangeMaterialProperty(objRightB[i], Utilities.VisualizerUtil.GetRightSaberHSV(), alpha, peakLevels);
+                }
+            }
 
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
             }
 
         }
 
-        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha)
+        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha, float peakLevels)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+
+            if (!PluginConfig.Instance.enableMerihari)
+            {
+                ChangeMerihari(renderer, hsv, peakLevels);
+                return;
+            }
+
             if (0.15f < alpha)
             {
                 var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
@@ -79,6 +94,19 @@ namespace NullponSpectrum.Controllers
             }
         }
 
+        private float Nomalize(float f)
+        {
+            var result = Mathf.Lerp(3f, 1f, f);
+            return f * result;
+        }
+
+        private void ChangeMerihari(MeshRenderer renderer, float[] hsv, float peakLevels)
+        {
+            var alphaLerp = Mathf.Lerp(0f, 0.8f, this.Nomalize(peakLevels * 3f));
+            var color = Color.HSVToRGB(hsv[0], hsv[1], this.Nomalize(alphaLerp)).ColorWithAlpha(alphaLerp);
+            _materialPropertyBlock.SetColor(visualizerColorID, color);
+            renderer.SetPropertyBlock(_materialPropertyBlock);
+        }
 
         public void Initialize()
         {
@@ -91,20 +119,6 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-
-            // セイバーの色取得
-            float leftH, leftS, leftV;
-            float rightH, rightS, rightV;
-
-            Color.RGBToHSV(this._colorScheme.saberAColor, out leftH, out leftS, out leftV);
-            Color.RGBToHSV(this._colorScheme.saberBColor, out rightH, out rightS, out rightV);
-            this.leftHSV[0] = leftH;
-            this.rightHSV[0] = rightH;
-            this.leftHSV[1] = leftS;
-            this.rightHSV[1] = rightS;
-            this.leftHSV[2] = leftV;
-            this.rightHSV[2] = rightV;
-
 
             this._audioSpectrum.Band = AudioSpectrum8.BandType.EightBand;
             this._audioSpectrum.numberOfSamples = 512;
@@ -238,13 +252,11 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private ColorScheme _colorScheme;
         private AudioSpectrum8 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum8 audioSpectrum)
+        public void Constructor(AudioSpectrum8 audioSpectrum)
         {
-            this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
 
         }

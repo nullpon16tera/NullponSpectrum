@@ -25,16 +25,6 @@ namespace NullponSpectrum.Controllers
         private GameObject meshVisualizerRoot;
 
         private Material _lineMaterial;
-        private float leftHSV;
-        private float rightHSV;
-
-        public enum FramePosition
-        {
-            Front,
-            Back,
-            Left,
-            Right,
-        };
 
         private void OnUpdatedRawSpectrums(AudioSpectrum26 obj)
         {
@@ -51,6 +41,7 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum26 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -59,30 +50,59 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                var alpha = (this._audioSpectrum.PeakLevels[((size - 1) - i)] * 10f);
-                ChangeMaterialProperty(objLeft[i], leftHSV, alpha);
-                ChangeMaterialProperty(objRight[i], rightHSV, alpha);
+                var peakLevels = this._audioSpectrum.PeakLevels[size - 1 - i];
+                var alpha = peakLevels * 10f;
+                if (needUpdate)
+                {
+                    ChangeMaterialProperty(objLeft[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), alpha, peakLevels);
+                    ChangeMaterialProperty(objRight[i], Utilities.VisualizerUtil.GetRightSaberHSV(), alpha, peakLevels);
+                }
             }
 
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
+            }
         }
 
-        private void ChangeMaterialProperty(GameObject obj, float h, float alpha)
+        private float Nomalize(float f)
+        {
+            var result = Mathf.Lerp(5f, 1f, f);
+            return f * result;
+        }
+
+
+        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha, float peakLevels)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            if (!PluginConfig.Instance.enableMerihari)
+            {
+                ChangeMerihari(renderer, hsv, peakLevels);
+                return;
+            }
+            
             if (0.15f < alpha)
             {
                 obj.SetActive(true);
-                var color = Color.HSVToRGB(h, 1f, 1f).ColorWithAlpha(0.7f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
                 _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
             else
             {
                 obj.SetActive(false);
-                var color = Color.HSVToRGB(h, 1f, 0f).ColorWithAlpha(0f);
+                var color = Color.HSVToRGB(hsv[0], hsv[1], 0f).ColorWithAlpha(0f);
                 _materialPropertyBlock.SetColor(visualizerColorID, color);
                 renderer.SetPropertyBlock(_materialPropertyBlock);
             }
+        }
+
+        private void ChangeMerihari(MeshRenderer renderer, float[] hsv, float peakLevels)
+        {
+            var colorLerp = Mathf.Lerp(0f, 1f, peakLevels * 5f);
+            var color = Color.HSVToRGB(hsv[0], hsv[1], this.Nomalize(colorLerp)).ColorWithAlpha(this.Nomalize(colorLerp));
+            _materialPropertyBlock.SetColor(visualizerColorID, color);
+            renderer.SetPropertyBlock(_materialPropertyBlock);
         }
 
         public void Initialize()
@@ -96,16 +116,6 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-
-            // セイバーの色取得
-            float leftH, leftS, leftV;
-            float rightH, rightS, rightV;
-
-            Color.RGBToHSV(this._colorScheme.saberAColor, out leftH, out leftS, out leftV);
-            Color.RGBToHSV(this._colorScheme.saberBColor, out rightH, out rightS, out rightV);
-            this.leftHSV = leftH;
-            this.rightHSV = rightH;
-
 
             this._audioSpectrum.Band = AudioSpectrum26.BandType.TwentySixBand;
             this._audioSpectrum.numberOfSamples = 2048;
@@ -173,13 +183,11 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private ColorScheme _colorScheme;
         private AudioSpectrum26 _audioSpectrum;
 
         [Inject]
-        public void Constructor(ColorScheme scheme, AudioSpectrum26 audioSpectrum)
+        public void Constructor(AudioSpectrum26 audioSpectrum)
         {
-            this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
 
         }

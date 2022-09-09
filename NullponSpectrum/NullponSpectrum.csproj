@@ -153,6 +153,7 @@
     <Compile Include="Configuration\PluginConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\FloorAdjustorUtil.cs" />
+    <Compile Include="Utilities\VisualizerUtil.cs" />
     <Compile Include="Views\SettingTabViewController.cs" />
   </ItemGroup>
   <ItemGroup>

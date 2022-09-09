@@ -66,15 +66,11 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
-            this.updateTime += Time.deltaTime;
-            var bpmSpeed = -(this.Currentmap.level.beatsPerMinute * 0.00001f);
-            var needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
             }
-
-            
 
             for (int i = 0; i < size; i++)
             {
@@ -106,7 +102,7 @@ namespace NullponSpectrum.Controllers
 
             if (needUpdate)
             {
-                updateTime = 0;
+                Utilities.VisualizerUtil.ResetUpdateTime();
             }
         }
 
@@ -217,13 +213,11 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        public IDifficultyBeatmap Currentmap { get; private set; }
         private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IDifficultyBeatmap level, AudioSpectrum31 audioSpectrum)
+        public void Constructor(AudioSpectrum31 audioSpectrum)
         {
-            this.Currentmap = level;
             this._audioSpectrum = audioSpectrum;
         }
 

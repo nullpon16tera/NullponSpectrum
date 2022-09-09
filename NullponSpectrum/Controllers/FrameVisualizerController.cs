@@ -48,6 +48,7 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum4 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -55,22 +56,27 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < cubes.Count; i++)
             {
-                
                 var peak = this._audioSpectrum.PeakLevels[i] * scale;
                 var frameSize = 0.25f + ((size - i) * 0.2f);
                 var peakSize = frameSize + peak;
-                cubes[i].transform.localScale = new Vector3(peakSize, 1f, peakSize);
-
                 var alpha = (this._audioSpectrum.PeakLevels[i] * 10);
                 var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
 
-                for (int r = 0; r < cubes[i].transform.childCount; r++)
+                if (needUpdate)
                 {
-                    var childObj = cubes[i].transform.GetChild(r).gameObject;
-                    ChangeMaterialProperty(childObj, colorLerp, frameSize, peakSize);
+                    cubes[i].transform.localScale = new Vector3(peakSize, 1f, peakSize);
+                    for (int r = 0; r < cubes[i].transform.childCount; r++)
+                    {
+                        var childObj = cubes[i].transform.GetChild(r).gameObject;
+                        ChangeMaterialProperty(childObj, colorLerp, frameSize, peakSize);
+                    }
                 }
             }
 
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
+            }
         }
 
         private void ChangeMaterialProperty(GameObject obj, float h, float frameSize, float peakSize)

@@ -44,6 +44,9 @@
 							<bool-setting value='enableFloorObject' apply-on-change='true' text='Enable Floor Object' hover-hint='Enable floor object.'></bool-setting>
 						</horizontal>
 						<horizontal>
+							<bool-setting value='enableMerihari' apply-on-change='true' text='Enable Floor Merihari' hover-hint='Change the lighting of the floor.'></bool-setting>
+						</horizontal>
+						<horizontal>
 							<bool-setting value='isFloorHeight' apply-on-change='true' text='Enable Floor Height' hover-hint='Enable Adjust floor height.'></bool-setting>
 						</horizontal>
 						<horizontal>

@@ -28,15 +28,7 @@ namespace NullponSpectrum.Controllers
 
         private int choice = 6;
 
-        private float[] leftHSV = new float[3];
-        private float[] rightHSV = new float[3];
         private float[] s_shift = new float[31];
-        private float updateTime = 0;
-        /// <summary>
-        /// 波形をずらす秒数の閾値(sec)
-        /// </summary>
-        /// <remarks>設定ファイルに逃がしてもいいし、曲のBPMと連動させてもいい</remarks>
-        private static readonly float s_updateThresholdTime = 0.025f;
 
 
         private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
@@ -55,9 +47,7 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
-            this.updateTime += Time.deltaTime;
-            var bpmSpeed = -(this.Currentmap.level.beatsPerMinute * 0.00001f);
-            var needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -67,7 +57,7 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                float timeSize = _timeSource.songTime + (float)(i + 1) / size * Mathf.PI;
+                float timeSize = Utilities.VisualizerUtil.GetAudioTimeSource().songTime + (float)(i + 1) / size * Mathf.PI;
                 float amplitude = Mathf.Cos(timeSize) * 3f + (i * 0.05f);
                 var alpha = this._audioSpectrum.PeakLevels[choice] * 10f % 1f;
                 int index = 30 - i;
@@ -85,12 +75,12 @@ namespace NullponSpectrum.Controllers
                     }
                 }
 
-                UneUne(uneuneLeftObjects[i], this.leftHSV, index, alpha, amplitude);
-                UneUne(uneuneRightObjects[i], this.rightHSV, index, alpha, amplitude);
+                UneUne(uneuneLeftObjects[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), index, alpha, amplitude);
+                UneUne(uneuneRightObjects[i], Utilities.VisualizerUtil.GetRightSaberHSV(), index, alpha, amplitude);
             }
 
             if (needUpdate) {
-                updateTime = 0;
+                Utilities.VisualizerUtil.ResetUpdateTime();
             }
         }
 
@@ -133,19 +123,6 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
-
-            // セイバーの色取得
-            float leftH, leftS, leftV;
-            float rightH, rightS, rightV;
-
-            Color.RGBToHSV(this._colorScheme.saberAColor, out leftH, out leftS, out leftV);
-            Color.RGBToHSV(this._colorScheme.saberBColor, out rightH, out rightS, out rightV);
-            this.leftHSV[0] = leftH;
-            this.rightHSV[0] = rightH;
-            this.leftHSV[1] = leftS;
-            this.rightHSV[1] = rightS;
-            this.leftHSV[2] = leftV;
-            this.rightHSV[2] = rightV;
 
             choice = PluginConfig.Instance.listChoice;
 
@@ -200,17 +177,11 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private IAudioTimeSource _timeSource;
-        public IDifficultyBeatmap Currentmap { get; private set; }
-        private ColorScheme _colorScheme;
         private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, ColorScheme scheme, AudioSpectrum31 audioSpectrum)
+        public void Constructor(AudioSpectrum31 audioSpectrum)
         {
-            this._timeSource = source;
-            this.Currentmap = level;
-            this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
         }
 

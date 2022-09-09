@@ -18,14 +18,6 @@ namespace NullponSpectrum.Controllers
         private GameObject lineVisualizer;
         private LineRenderer lineRenderer;
         private Vector3[] linePositions = new Vector3[30];
-        private float updateTime = 0;
-        private static readonly float s_updateThresholdTime = 0.025f;
-
-        private float Nomalize(float f)
-        {
-            var result = Mathf.Lerp(2f, 0.8f, f);
-            return f * result;
-        }
 
         private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
         {
@@ -42,31 +34,35 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
             }
-
-            this.updateTime += Time.deltaTime;
-            var bpmSpeed = -(this.Currentmap.level.beatsPerMinute * 0.00001f);
-            var needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
 
             foreach (var item in linePositions.Select((x, i) => (x, i)).Skip(1).Take(linePositions.Length - 2))
             {
 
                 if (needUpdate)
                 {
-                    var alpha = Mathf.Lerp(0f, 0.8f, this._audioSpectrum.PeakLevels[item.i - 1] * 5f);
+                    var alpha = Mathf.Lerp(0f, 0.8f, this.Nomalize(this._audioSpectrum.PeakLevels[item.i - 1] * 5f));
                     var line = item.x;
-                    line.z = this.Nomalize(alpha);
-                    //line.y = floorTransform.localPosition.y;
+                    line.z = alpha;
                     lineRenderer.SetPosition(item.i, line);
                 }
+            }
 
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
             }
         }
 
-
+        private float Nomalize(float f)
+        {
+            var result = Mathf.Lerp(2f, 1f, f);
+            return f * result;
+        }
 
         public void Initialize()
         {
@@ -104,23 +100,19 @@ namespace NullponSpectrum.Controllers
             lineRenderer.alignment = LineAlignment.View;
             lineRenderer.startWidth = 0.055f;
             lineRenderer.endWidth = 0.055f;
-            lineRenderer.startColor = this._colorScheme.saberAColor;
-            lineRenderer.endColor = this._colorScheme.saberBColor;
+            lineRenderer.startColor = Utilities.VisualizerUtil.saberAColor;
+            lineRenderer.endColor = Utilities.VisualizerUtil.saberBColor;
             lineRenderer.SetPositions(linePositions);
 
             
         }
 
         private bool _disposedValue;
-        public IDifficultyBeatmap Currentmap { get; private set; }
-        private ColorScheme _colorScheme;
         private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IDifficultyBeatmap level, ColorScheme scheme, AudioSpectrum31 audioSpectrum)
+        public void Constructor(AudioSpectrum31 audioSpectrum)
         {
-            this.Currentmap = level;
-            this._colorScheme = scheme;
             this._audioSpectrum = audioSpectrum;
         }
 

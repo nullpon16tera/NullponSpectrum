@@ -43,6 +43,7 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -62,9 +63,16 @@ namespace NullponSpectrum.Controllers
                 var rightPos = rightSphereVector[i];
                 rightSphere.localPosition = new Vector3((rightPos.x - positionSize), (rightPos.y + positionSize), (rightPos.z + positionSize));
                 rightSphere.localScale = new Vector3(0.05f, this._audioSpectrum.PeakLevels[i] * (5f + rightPos.z), this._audioSpectrum.PeakLevels[i] * (5f + rightPos.z));
+                if (needUpdate)
+                {
+                    ChangeMaterialProperty(leftSpheres[i], positionSize, alpha);
+                    ChangeMaterialProperty(rightSpheres[i], positionSize, alpha);
+                }
+            }
 
-                ChangeMaterialProperty(leftSpheres[i], positionSize, alpha);
-                ChangeMaterialProperty(rightSpheres[i], positionSize, alpha);
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
             }
 
         }
@@ -163,18 +171,16 @@ namespace NullponSpectrum.Controllers
         {
             System.Random rand = new System.Random();
             int next = rand.Next(0, 101);
-            int seed = next * (int)this.Currentmap.level.beatsPerMinute;
+            int seed = next * (int)Utilities.VisualizerUtil.GetBeatsPerMinute();
             return seed;
         }
 
         private bool _disposedValue;
-        public IDifficultyBeatmap Currentmap { get; private set; }
         private AudioSpectrum31 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IDifficultyBeatmap level, AudioSpectrum31 audioSpectrum)
+        public void Constructor(AudioSpectrum31 audioSpectrum)
         {
-            this.Currentmap = level;
             this._audioSpectrum = audioSpectrum;
         }
 

@@ -39,6 +39,7 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum4 audio)
         {
+            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -48,22 +49,29 @@ namespace NullponSpectrum.Controllers
             var colorLerp = Mathf.Lerp(0.45f, 1f, alpha);
             var peak = this._audioSpectrum.PeakLevels[0] * scale;
             var cubeSize = 0.2f + peak * 1.3f;
-            var bpm = _timeSource.songTime * (60f / this.Currentmap.level.beatsPerMinute);
+            var bpm = Utilities.VisualizerUtil.GetAudioTimeSource().songTime * (60f / Utilities.VisualizerUtil.GetBeatsPerMinute());
             
             for (int i = 0; i < cubes.Count; i++)
             {
-                var cube = cubes[i];
-                var rotate = bpm * 360f + 45f;
-                var rotateRog = (i == 0 || i == 2 ? rotate : -(rotate));
-                var cubePosition = cube.transform.localPosition;
-                cubePosition.y = cubeSize;
-                cube.transform.localScale = new Vector3(cubeSize, cubeSize, cubeSize);
-                cube.transform.localRotation = Quaternion.Euler(rotateRog, rotateRog, rotateRog);
-                cube.transform.localPosition = cubePosition;
+                if (needUpdate)
+                {
+                    var cube = cubes[i];
+                    var rotate = bpm * 360f + 45f;
+                    var rotateRog = (i == 0 || i == 2 ? rotate : -(rotate));
+                    var cubePosition = cube.transform.localPosition;
+                    cubePosition.y = cubeSize;
+                    cube.transform.localScale = new Vector3(cubeSize, cubeSize, cubeSize);
+                    cube.transform.localRotation = Quaternion.Euler(rotateRog, rotateRog, rotateRog);
+                    cube.transform.localPosition = cubePosition;
 
-                ChangeMaterialProperty(cube, colorLerp, cubeSize);
+                    ChangeMaterialProperty(cube, colorLerp, cubeSize);
+                }
             }
 
+            if (needUpdate)
+            {
+                Utilities.VisualizerUtil.ResetUpdateTime();
+            }
         }
 
         private void ChangeMaterialProperty(GameObject obj, float h, float size)
@@ -149,15 +157,11 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private IAudioTimeSource _timeSource;
-        public IDifficultyBeatmap Currentmap { get; private set; }
         private AudioSpectrum4 _audioSpectrum;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, AudioSpectrum4 audioSpectrum)
+        public void Constructor(AudioSpectrum4 audioSpectrum)
         {
-            this._timeSource = source;
-            this.Currentmap = level;
             this._audioSpectrum = audioSpectrum;
         }
 
