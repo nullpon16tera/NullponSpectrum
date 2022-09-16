@@ -26,15 +26,7 @@ namespace NullponSpectrum.Controllers
         private GameObject leftFloorRoot = new GameObject("ponponLeftFloorRoot");
         private GameObject rightFloorRoot = new GameObject("ponponRightFloorRoot");
 
-        private GameObject ponponRoot = new GameObject("ponponVisualizerRoot");
-
         private float[] s_shift = new float[28];
-        private float updateTime = 0;
-        /// <summary>
-        /// 波形をずらす秒数の閾値(sec)
-        /// </summary>
-        /// <remarks>設定ファイルに逃がしてもいいし、曲のBPMと連動させてもいい</remarks>
-        private static readonly float s_updateThresholdTime = 0.025f;
 
         public enum FramePosition
         {
@@ -50,7 +42,7 @@ namespace NullponSpectrum.Controllers
             return f * result;
         }
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -64,7 +56,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum31 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
             var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
@@ -143,8 +135,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-
-            this._audioSpectrum.Band = AudioSpectrum31.BandType.ThirtyOneBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -213,10 +203,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum31 _audioSpectrum;
+        private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum31 audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.ThirtyOneBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
         }

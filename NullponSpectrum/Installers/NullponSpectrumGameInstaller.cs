@@ -2,6 +2,9 @@
 using NullponSpectrum.AudioSpectrums;
 using NullponSpectrum.Controllers;
 using Zenject;
+using System;
+using System.Linq;
+using UnityEngine;
 
 namespace NullponSpectrum.Installers
 {
@@ -21,9 +24,16 @@ namespace NullponSpectrum.Installers
             this.Container.BindInterfacesAndSelfTo<FloorViewController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<Utilities.VisualizerUtil>().AsCached().NonLazy();
             //this.Container.BindInterfacesAndSelfTo<AudioSpectrum>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum))).AsCached();
+
+            foreach (var bandType in Enum.GetValues(typeof(AudioSpectrum.BandType)).OfType<AudioSpectrum.BandType>())
+            {
+                var audio = new GameObject("AudioSpectrumBand", typeof(AudioSpectrum)).GetComponent<AudioSpectrum>();
+                audio.Band = bandType;
+                this.Container.Bind<AudioSpectrum>().WithId(bandType).FromInstance(audio);
+            }
+
             if (PluginConfig.Instance.CubeVisualizer || PluginConfig.Instance.FrameVisualizer)
             {
-                this.Container.BindInterfacesAndSelfTo<AudioSpectrum4>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum4))).AsCached();
                 if (PluginConfig.Instance.CubeVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<CubeVisualizerController>().AsCached().NonLazy();
@@ -35,7 +45,6 @@ namespace NullponSpectrum.Installers
             }
             if (PluginConfig.Instance.TileVisualizer)
             {
-                this.Container.BindInterfacesAndSelfTo<AudioSpectrum8>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum8))).AsCached();
                 if (PluginConfig.Instance.TileVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
@@ -43,7 +52,6 @@ namespace NullponSpectrum.Installers
             }
             if (PluginConfig.Instance.MeshVisualizer)
             {
-                this.Container.BindInterfacesAndSelfTo<AudioSpectrum26>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum26))).AsCached();
                 if (PluginConfig.Instance.MeshVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
@@ -51,7 +59,6 @@ namespace NullponSpectrum.Installers
             }
             if (PluginConfig.Instance.LineVisualizer || PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
             {
-                this.Container.BindInterfacesAndSelfTo<AudioSpectrum31>().FromNewComponentOn(new UnityEngine.GameObject(nameof(AudioSpectrum31))).AsCached();
                 if (PluginConfig.Instance.LineVisualizer)
                 {
                     this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();

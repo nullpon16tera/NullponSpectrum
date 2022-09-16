@@ -132,10 +132,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AudioSpectrums\AudioSpectrum26.cs" />
-    <Compile Include="AudioSpectrums\AudioSpectrum31.cs" />
-    <Compile Include="AudioSpectrums\AudioSpectrum8.cs" />
-    <Compile Include="AudioSpectrums\AudioSpectrum4.cs" />
+    <Compile Include="AudioSpectrums\AudioSpectrum.cs" />
     <Compile Include="Controllers\CubeVisualizerController.cs" />
     <Compile Include="Controllers\FloorViewController.cs" />
     <Compile Include="Controllers\LineVisualizerController.cs" />

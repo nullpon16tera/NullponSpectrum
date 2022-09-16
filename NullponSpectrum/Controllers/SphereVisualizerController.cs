@@ -28,7 +28,7 @@ namespace NullponSpectrum.Controllers
         private GameObject sphereRoot = new GameObject("sphereVisualizerRoot");
 
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum31 obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -41,7 +41,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum31 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
             var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
@@ -108,8 +108,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-
-            this._audioSpectrum.Band = AudioSpectrum31.BandType.ThirtyOneBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -176,10 +174,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum31 _audioSpectrum;
+        private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum31 audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.ThirtyOneBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
         }

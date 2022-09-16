@@ -33,7 +33,7 @@ namespace NullponSpectrum.Controllers
             Right,
         };
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum4 obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -46,7 +46,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum4 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
             var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
@@ -111,7 +111,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this._audioSpectrum.Band = AudioSpectrum4.BandType.FourBand;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -184,10 +183,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum4 _audioSpectrum;
+        private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum4 audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.FourBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
             

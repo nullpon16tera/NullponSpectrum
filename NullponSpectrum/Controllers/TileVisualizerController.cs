@@ -28,7 +28,7 @@ namespace NullponSpectrum.Controllers
         private GameObject tileFloorRoot;
         private Material _lineMaterial;
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum8 obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -41,7 +41,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum8 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
             if (!audio)
             {
@@ -70,7 +70,7 @@ namespace NullponSpectrum.Controllers
             }
 
             var alphaLerp = Mathf.Lerp(0f, 1f, this.Nomalize(peakLevels * 3f));
-            if (0.2f < alphaLerp)
+            if (0.15f < alphaLerp)
             {
                 var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
                 _materialPropertyBlock.SetColor(visualizerColorID, color);
@@ -110,7 +110,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this._audioSpectrum.Band = AudioSpectrum8.BandType.EightBand;
             this._audioSpectrum.numberOfSamples = 512;
             this._audioSpectrum.fallSpeed = 0.15f;
             this._audioSpectrum.sensibility = 10f;
@@ -242,10 +241,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum8 _audioSpectrum;
+        private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum8 audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.EightBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
 

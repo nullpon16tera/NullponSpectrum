@@ -26,7 +26,7 @@ namespace NullponSpectrum.Controllers
 
         private Material _lineMaterial;
 
-        private void OnUpdatedRawSpectrums(AudioSpectrum26 obj)
+        private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
             if (!PluginConfig.Instance.Enable)
             {
@@ -39,7 +39,7 @@ namespace NullponSpectrum.Controllers
             this.UpdateAudioSpectrums(obj);
         }
 
-        private void UpdateAudioSpectrums(AudioSpectrum26 audio)
+        private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
             if (!audio)
             {
@@ -73,7 +73,7 @@ namespace NullponSpectrum.Controllers
             }
 
             var alphaLerp = Mathf.Lerp(0f, 1f, this.Nomalize(peakLevels * 3f));
-            if (0.2f < alphaLerp)
+            if (0.15f < alphaLerp)
             {
                 obj.SetActive(true);
                 var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
@@ -109,7 +109,6 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            this._audioSpectrum.Band = AudioSpectrum26.BandType.TwentySixBand;
             this._audioSpectrum.numberOfSamples = 2048;
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 0.01f;
@@ -175,10 +174,10 @@ namespace NullponSpectrum.Controllers
         }
 
         private bool _disposedValue;
-        private AudioSpectrum26 _audioSpectrum;
+        private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor(AudioSpectrum26 audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.TwentySixBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
 
