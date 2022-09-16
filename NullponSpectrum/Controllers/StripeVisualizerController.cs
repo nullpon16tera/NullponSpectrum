@@ -47,7 +47,6 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum31 audio)
         {
-            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -56,20 +55,11 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 var peakLevels = this._audioSpectrum.PeakLevels[size - 1 - i];
-                var alpha = peakLevels * 10f;
-                if (needUpdate)
-                {
-                    ChangeMaterialProperty(leftPlane[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), alpha, peakLevels);
-                    ChangeMaterialProperty(rightPlane[i], Utilities.VisualizerUtil.GetRightSaberHSV(), alpha, peakLevels);
-                }
+                
+                ChangeMaterialProperty(leftPlane[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), peakLevels);
+                ChangeMaterialProperty(rightPlane[i], Utilities.VisualizerUtil.GetRightSaberHSV(), peakLevels);
 
             }
-
-            if (needUpdate)
-            {
-                Utilities.VisualizerUtil.ResetUpdateTime();
-            }
-
         }
 
         private float Nomalize(float f)
@@ -78,7 +68,7 @@ namespace NullponSpectrum.Controllers
             return f * result;
         }
 
-        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha, float peakLevels)
+        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float peakLevels)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
 
@@ -88,7 +78,8 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
-            if (0.15f < alpha)
+            var alphaLerp = Mathf.Lerp(0f, 1f, this.Nomalize(peakLevels * 3f));
+            if (0.2f < alphaLerp)
             {
                 obj.SetActive(true);
                 var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.5f);

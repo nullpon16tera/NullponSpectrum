@@ -41,7 +41,6 @@ namespace NullponSpectrum.Controllers
 
         private void UpdateAudioSpectrums(AudioSpectrum26 audio)
         {
-            var needUpdate = Utilities.VisualizerUtil.GetNeedUpdate();
             if (!audio)
             {
                 return;
@@ -51,17 +50,9 @@ namespace NullponSpectrum.Controllers
             for (int i = 0; i < size; i++)
             {
                 var peakLevels = this._audioSpectrum.PeakLevels[size - 1 - i];
-                var alpha = peakLevels * 10f;
-                if (needUpdate)
-                {
-                    ChangeMaterialProperty(objLeft[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), alpha, peakLevels);
-                    ChangeMaterialProperty(objRight[i], Utilities.VisualizerUtil.GetRightSaberHSV(), alpha, peakLevels);
-                }
-            }
 
-            if (needUpdate)
-            {
-                Utilities.VisualizerUtil.ResetUpdateTime();
+                ChangeMaterialProperty(objLeft[i], Utilities.VisualizerUtil.GetLeftSaberHSV(), peakLevels);
+                ChangeMaterialProperty(objRight[i], Utilities.VisualizerUtil.GetRightSaberHSV(), peakLevels);
             }
         }
 
@@ -72,7 +63,7 @@ namespace NullponSpectrum.Controllers
         }
 
 
-        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float alpha, float peakLevels)
+        private void ChangeMaterialProperty(GameObject obj, float[] hsv, float peakLevels)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
             if (!PluginConfig.Instance.enableMerihari)
@@ -80,8 +71,9 @@ namespace NullponSpectrum.Controllers
                 ChangeMerihari(renderer, hsv, peakLevels);
                 return;
             }
-            
-            if (0.15f < alpha)
+
+            var alphaLerp = Mathf.Lerp(0f, 1f, this.Nomalize(peakLevels * 3f));
+            if (0.2f < alphaLerp)
             {
                 obj.SetActive(true);
                 var color = Color.HSVToRGB(hsv[0], hsv[1], 1f).ColorWithAlpha(0.7f);
