@@ -14,6 +14,7 @@
 						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 							<modifier value='CubeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.CubeVisualizer.png' text='Cube Visualizer'></modifier>
 							<modifier value='FrameVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Frame Visualizer'></modifier>
+							<modifier value='FrameFlowingVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameFlowingVisualizer.png' text='Frame Flowing Visualizer'></modifier>
 							<modifier value='LineVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.LineVisualizer.png' text='Line Visualizer'></modifier>
 						</vertical>
 					</vertical>
@@ -24,6 +25,7 @@
 								<modifier value='MeshVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Mesh Visualizer'></modifier>
 								<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
 								<modifier value='RainbowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='Rainbow Visualizer'></modifier>
+								<modifier value='RainbowBugVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='RainbowBug Visualizer'></modifier>
 							</vertical>
 						</vertical>
 					</vertical>

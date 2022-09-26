@@ -32,53 +32,53 @@ namespace NullponSpectrum.Installers
                 this.Container.Bind<AudioSpectrum>().WithId(bandType).FromInstance(audio);
             }
 
-            if (PluginConfig.Instance.CubeVisualizer || PluginConfig.Instance.FrameVisualizer)
+            
+            if (PluginConfig.Instance.CubeVisualizer)
             {
-                if (PluginConfig.Instance.CubeVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<CubeVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.FrameVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<FrameVisualizerController>().AsCached().NonLazy();
-                }
+                this.Container.BindInterfacesAndSelfTo<CubeVisualizerController>().AsCached().NonLazy();
             }
+            if (PluginConfig.Instance.FrameVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<FrameVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.FrameFlowingVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<FrameFlowingVisualizerController>().AsCached().NonLazy();
+            }
+
             if (PluginConfig.Instance.TileVisualizer)
             {
-                if (PluginConfig.Instance.TileVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
-                }
+                this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
             }
+            
             if (PluginConfig.Instance.MeshVisualizer)
             {
-                if (PluginConfig.Instance.MeshVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
-                }
+                this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
             }
-            if (PluginConfig.Instance.LineVisualizer || PluginConfig.Instance.StripeVisualizer || PluginConfig.Instance.SphereVisualizer || PluginConfig.Instance.UneUneVisualizer || PluginConfig.Instance.RainbowVisualizer)
+            
+            if (PluginConfig.Instance.LineVisualizer)
             {
-                if (PluginConfig.Instance.LineVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.StripeVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<StripeVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.SphereVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<SphereVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.UneUneVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
-                }
-                if (PluginConfig.Instance.RainbowVisualizer)
-                {
-                    this.Container.BindInterfacesAndSelfTo<RainbowVisualizerController>().AsCached().NonLazy();
-                }
+                this.Container.BindInterfacesAndSelfTo<LineVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.StripeVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<StripeVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.SphereVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<SphereVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.UneUneVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.RainbowVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<RainbowVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.RainbowBugVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<RainbowBugVisualizerController>().AsCached().NonLazy();
             }
         }
     }

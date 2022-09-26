@@ -13,19 +13,20 @@ namespace NullponSpectrum.Controllers
     /// Monobehaviours (scripts) are added to GameObjects.
     /// For a full list of Messages a Monobehaviour can receive from the game, see https://docs.unity3d.com/ScriptReference/MonoBehaviour.html.
     /// </summary>
-    public class RainbowVisualizerController : IInitializable, IDisposable
+    public class RainbowBugVisualizerController : IInitializable, IDisposable
     {
         private int size = 28;
 
         private Material _material;
         private MaterialPropertyBlock _materialPropertyBlock;
         private int visualizerColorID;
+        private int visualizerScaleID;
 
         private List<GameObject> leftObject = new List<GameObject>(28);
         private List<GameObject> rightObject = new List<GameObject>(28);
 
-        private GameObject leftFloorRoot = new GameObject("ponponLeftFloorRoot");
-        private GameObject rightFloorRoot = new GameObject("ponponRightFloorRoot");
+        private GameObject leftFloorRoot = new GameObject("rogLeftFloorRoot");
+        private GameObject rightFloorRoot = new GameObject("rogRightFloorRoot");
 
 
         private float[] s_shift = new float[28];
@@ -42,7 +43,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.RainbowVisualizer)
+            if (!PluginConfig.Instance.RainbowBugVisualizer)
             {
                 return;
             }
@@ -60,7 +61,7 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                var alpha = this._audioSpectrum.PeakLevels[6] * 10f % 1f;
+                var alpha = this._audioSpectrum.PeakLevels[4] * 10f % 1f;
                 int index = 27 - i;
                 if (needUpdate)
                 {
@@ -81,7 +82,7 @@ namespace NullponSpectrum.Controllers
                     }
                 }
                 float tmp = Mathf.Lerp(0f, 1.5f, this._audioSpectrum.PeakLevels[27 - i] * 6f);
-                
+
                 ChangeMaterialProperty(leftObject[i], this.s_shift, index, 0.002f, this.Nomalize(tmp));
                 ChangeMaterialProperty(rightObject[i], this.s_shift, index, 0.002f, this.Nomalize(tmp));
             }
@@ -95,7 +96,7 @@ namespace NullponSpectrum.Controllers
         private void ChangeMaterialProperty(GameObject obj, float[] h, int index, float min, float tmp)
         {
             var scale = obj.transform.localScale;
-            obj.transform.localScale = new Vector3(scale.x, tmp, scale.z);
+            obj.transform.localScale = new Vector3(h[index] / 2, tmp, h[index] / 2);
 
             var child = obj.transform.GetChild(0).gameObject;
             if (child != null)
@@ -104,7 +105,7 @@ namespace NullponSpectrum.Controllers
                 if (min < tmp)
                 {
                     obj.SetActive(true);
-                    var color = Color.HSVToRGB(h[index], 1f, 1f).ColorWithAlpha(0.7f);
+                    var color = Color.HSVToRGB(h[index], 1f, 1f).ColorWithAlpha(0.3f);
                     _materialPropertyBlock.SetColor(visualizerColorID, color);
                     renderer.SetPropertyBlock(_materialPropertyBlock);
                 }
@@ -124,7 +125,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
-            if (!PluginConfig.Instance.RainbowVisualizer)
+            if (!PluginConfig.Instance.RainbowBugVisualizer)
             {
                 return;
             }
@@ -143,7 +144,7 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            _material = new Material(Shader.Find("Custom/Glowing"));
+            _material = new Material(Shader.Find("Custom/UnlitSpectrogram"));
             _material.SetColor("_Color", Color.red.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
@@ -162,7 +163,7 @@ namespace NullponSpectrum.Controllers
 
             for (int i = 0; i < size; i++)
             {
-                GameObject parentObjectLeft = new GameObject("ponponParentObjectLeft");
+                GameObject parentObjectLeft = new GameObject("rogParentObjectLeft");
                 parentObjectLeft.transform.SetParent(leftFloorRoot.transform, false);
                 GameObject childObjectLeft = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 childObjectLeft.transform.SetParent(parentObjectLeft.transform, false);
@@ -171,14 +172,14 @@ namespace NullponSpectrum.Controllers
                 parentObjectLeft.transform.localPosition = new Vector3(-0.975f + (i * 0.0725f), 0f, 0f);
                 parentObjectLeft.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
-                childObjectLeft.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+                childObjectLeft.transform.localPosition = new Vector3(0f, 0.5f, -0.5f);
                 childObjectLeft.transform.localScale = Vector3.one;
                 MeshRenderer childMeshRenderer = childObjectLeft.GetComponent<MeshRenderer>();
                 childMeshRenderer.material = _material;
                 leftObject.Add(parentObjectLeft);
 
 
-                GameObject parentObjectRight = new GameObject("ponponParentObjectRight");
+                GameObject parentObjectRight = new GameObject("rogParentObjectRight");
                 parentObjectRight.transform.SetParent(rightFloorRoot.transform, false);
                 GameObject childObjectRight = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 childObjectRight.transform.SetParent(parentObjectRight.transform, false);
@@ -187,8 +188,8 @@ namespace NullponSpectrum.Controllers
                 parentObjectRight.transform.localPosition = new Vector3(0.975f - (i * 0.0725f), 0f, 0f);
                 parentObjectRight.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
 
-                
-                childObjectRight.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+
+                childObjectRight.transform.localPosition = new Vector3(0f, 0.5f, -0.5f);
                 childObjectRight.transform.localScale = Vector3.one;
                 MeshRenderer childRightMeshRenderer = childObjectRight.GetComponent<MeshRenderer>();
                 childRightMeshRenderer.material = _material;
@@ -200,7 +201,7 @@ namespace NullponSpectrum.Controllers
         private AudioSpectrum _audioSpectrum;
 
         [Inject]
-        public void Constructor([Inject(Id = AudioSpectrum.BandType.ThirtyOneBand)]AudioSpectrum audioSpectrum)
+        public void Constructor([Inject(Id = AudioSpectrum.BandType.ThirtyOneBand)] AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
         }

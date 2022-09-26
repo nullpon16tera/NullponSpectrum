@@ -90,6 +90,7 @@ namespace NullponSpectrum.Controllers
                 linePositions[i] = new Vector3(-0.495f + (i * 0.03425f), 0f, 0f);
             }
 
+            // Sprites/Default
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();
             lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
             lineRenderer.useWorldSpace = false;

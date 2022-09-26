@@ -17,11 +17,13 @@ namespace NullponSpectrum.Configuration
         public virtual int listChoice { get; set; } = 6;
         public virtual bool CubeVisualizer { get; set; } = false;
         public virtual bool FrameVisualizer { get; set; } = false;
+        public virtual bool FrameFlowingVisualizer { get; set; } = false;
         public virtual bool LineVisualizer { get; set; } = false;
         public virtual bool MeshVisualizer { get; set; } = false;
         public virtual bool StripeVisualizer { get; set; } = false;
         public virtual bool SphereVisualizer { get; set; } = false;
         public virtual bool UneUneVisualizer { get; set; } = false;
+        public virtual bool RainbowBugVisualizer { get; set; } = false;
         public virtual bool RainbowVisualizer { get; set; } = false;
 
         public virtual bool TileVisualizer { get; set; } = false;

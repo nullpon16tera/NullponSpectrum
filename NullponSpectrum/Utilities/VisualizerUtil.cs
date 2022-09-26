@@ -86,7 +86,6 @@ namespace NullponSpectrum.Utilities
             updateTime += Time.deltaTime;
             var bpmSpeed = -(GetBeatsPerMinute() * 0.00001f);
             needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
-            SaberColor();
         }
 
         public void Initialize()

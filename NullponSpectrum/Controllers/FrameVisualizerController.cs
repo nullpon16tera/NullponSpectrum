@@ -65,11 +65,11 @@ namespace NullponSpectrum.Controllers
                 if (needUpdate)
                 {
                     cubes[i].transform.localScale = new Vector3(peakSize, 1f, peakSize);
-                    for (int r = 0; r < cubes[i].transform.childCount; r++)
-                    {
-                        var childObj = cubes[i].transform.GetChild(r).gameObject;
-                        ChangeMaterialProperty(childObj, colorLerp, frameSize, peakSize);
-                    }
+                }
+                for (int r = 0; r < cubes[i].transform.childCount; r++)
+                {
+                    var childObj = cubes[i].transform.GetChild(r).gameObject;
+                    ChangeMaterialProperty(childObj, colorLerp, frameSize, peakSize);
                 }
             }
 
@@ -79,9 +79,16 @@ namespace NullponSpectrum.Controllers
             }
         }
 
+        private float Nomalize(float f)
+        {
+            var result = Mathf.Lerp(5f, 1f, f);
+            return f * result;
+        }
+
         private void ChangeMaterialProperty(GameObject obj, float h, float frameSize, float peakSize)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+
             if ((frameSize + 0.025f) < peakSize)
             {
                 obj.SetActive(true);

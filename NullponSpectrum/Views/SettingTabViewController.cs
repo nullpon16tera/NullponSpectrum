@@ -86,6 +86,13 @@ namespace NullponSpectrum.Views
             set => conf.FrameVisualizer = value;
         }
 
+        [UIValue("FrameFlowingVisualizer")]
+        public bool FrameFlowingVisualizer
+        {
+            get => conf.FrameFlowingVisualizer;
+            set => conf.FrameFlowingVisualizer = value;
+        }
+
         [UIValue("LineVisualizer")]
         public bool LineVisualizer
         {
@@ -104,6 +111,7 @@ namespace NullponSpectrum.Views
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                    if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
                 }
 
                 conf.TileVisualizer = value;
@@ -123,6 +131,7 @@ namespace NullponSpectrum.Views
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                    if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -142,6 +151,7 @@ namespace NullponSpectrum.Views
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                    if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
                 }
 
                 conf.StripeVisualizer = value;
@@ -164,6 +174,8 @@ namespace NullponSpectrum.Views
             set => conf.UneUneVisualizer = value;
         }
 
+        
+
         [UIValue("RainbowVisualizer")]
         public bool RainbowVisualizer
         {
@@ -175,8 +187,27 @@ namespace NullponSpectrum.Views
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                    if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
                 }
                 conf.RainbowVisualizer = value;
+                updateUI();
+            }
+        }
+
+        [UIValue("RainbowBugVisualizer")]
+        public bool RainbowBugVisualizer
+        {
+            get => conf.RainbowBugVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                }
+                conf.RainbowBugVisualizer = value;
                 updateUI();
             }
         }
