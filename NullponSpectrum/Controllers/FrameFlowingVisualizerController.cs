@@ -183,6 +183,8 @@ namespace NullponSpectrum.Controllers
         private void ChangeMaterialProperty(GameObject obj, float[] hsv, float tmp)
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+            /*var scale = obj.transform.localScale;
+            obj.transform.localScale = new Vector3(scale.x, 0.01f + tmp * 0.3f, scale.z);*/
             if (0.5f < tmp)
             {
                 obj.SetActive(true);
@@ -225,7 +227,7 @@ namespace NullponSpectrum.Controllers
             visualizerColorID = Shader.PropertyToID("_Color");
 
             frameFlowingVisualizerRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
-            frameFlowingVisualizerRoot.transform.localPosition = new Vector3(0f, 0.0001f, 0f);
+            frameFlowingVisualizerRoot.transform.localPosition = new Vector3(0f, 0.005f, 0f);
 
             GameObject frontLeftRoot = new GameObject("frontLeftRoot");
             frontLeftRoot.transform.SetParent(frameFlowingVisualizerRoot.transform, false);
