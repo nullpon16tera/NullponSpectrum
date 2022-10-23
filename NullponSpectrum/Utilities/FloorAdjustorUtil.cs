@@ -44,9 +44,9 @@ namespace NullponSpectrum.Utilities
 
         private void Start()
         {
-            Plugin.Log.Debug($"AdjustFloor Before localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
+            Plugin.Log.Info($"AdjustFloor Before localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
             StartCoroutine(FloorAdjust());
-            Plugin.Log.Debug($"AdjustFloor After localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
+            Plugin.Log.Info($"AdjustFloor After localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
         }
 
         // VMCAvatar用にキャリブレーションし直したときのを用意したけど、要らないかもしれないからコメントアウトしとく

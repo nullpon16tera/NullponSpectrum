@@ -174,7 +174,20 @@ namespace NullponSpectrum.Views
             set => conf.UneUneVisualizer = value;
         }
 
-        
+        [UIValue("LinebowVisualizer")]
+        public bool LinebowVisualizer
+        {
+            get => conf.LinebowVisualizer;
+            set => conf.LinebowVisualizer = value;
+        }
+
+        [UIValue("BoxVisualizer")]
+        public bool BoxVisualizer
+        {
+            get => conf.BoxVisualizer;
+            set => conf.BoxVisualizer = value;
+        }
+
 
         [UIValue("RainbowVisualizer")]
         public bool RainbowVisualizer

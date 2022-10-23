@@ -33,6 +33,10 @@
 						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
 							<modifier value='SphereVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Sphere Visualizer'></modifier>
 							<modifier value='UneUneVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='UneUne Visualizer'></modifier>
+							<modifier value='LinebowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.LinebowVisualizer.png' text='Linebow Visualizer'></modifier>
+							<!--
+							<modifier value='BoxVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='Box Visualizer'></modifier>
+							-->
 						</vertical>
 					</vertical>
 				</horizontal>

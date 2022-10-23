@@ -72,6 +72,14 @@ namespace NullponSpectrum.Installers
             {
                 this.Container.BindInterfacesAndSelfTo<UneUneVisualizerController>().AsCached().NonLazy();
             }
+            if (PluginConfig.Instance.LinebowVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<LinebowVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.BoxVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<BoxVisualizerController>().AsCached().NonLazy();
+            }
             if (PluginConfig.Instance.RainbowVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<RainbowVisualizerController>().AsCached().NonLazy();

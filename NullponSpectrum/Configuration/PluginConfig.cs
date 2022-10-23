@@ -23,6 +23,8 @@ namespace NullponSpectrum.Configuration
         public virtual bool StripeVisualizer { get; set; } = false;
         public virtual bool SphereVisualizer { get; set; } = false;
         public virtual bool UneUneVisualizer { get; set; } = false;
+        public virtual bool LinebowVisualizer { get; set; } = false;
+        public virtual bool BoxVisualizer { get; set; } = false;
         public virtual bool RainbowBugVisualizer { get; set; } = false;
         public virtual bool RainbowVisualizer { get; set; } = false;
 
