@@ -1,6 +1,6 @@
 # NullponSpectrum
 
-対応BeatSaberバージョン：　1.20.0～1.24.x
+対応BeatSaberバージョン：　1.20.0～1.27.x
 
 プレイエリアに、音に合わせて動くオブジェクトを追加します。  
 VMCAvatarとNalulunaAvatarsの床調整に対応しました。  
