@@ -227,10 +227,10 @@ namespace NullponSpectrum.Views
 
         protected override void OnDestroy()
         {
-            GameplaySetup.instance.RemoveTab("Nullpon Spectrum");
+            GameplaySetup.Instance.RemoveTab("Nullpon Spectrum");
             base.OnDestroy();
         }
 
-        public void Initialize() => GameplaySetup.instance.AddTab("Nullpon Spectrum", this.ResourceName, this);
+        public void Initialize() => GameplaySetup.Instance.AddTab("Nullpon Spectrum", this.ResourceName, this);
     }
 }

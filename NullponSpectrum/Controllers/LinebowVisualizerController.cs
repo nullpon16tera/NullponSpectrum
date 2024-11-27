@@ -138,7 +138,8 @@ namespace NullponSpectrum.Controllers
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
 
-            _material = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _material = new Material(_shader);
             _material.SetColor("_Color", Color.black.ColorWithAlpha(1f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();

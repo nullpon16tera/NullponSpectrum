@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 using System.Linq;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -132,7 +133,8 @@ namespace NullponSpectrum.Controllers
             GameObject leftUneUne = new GameObject("leftUneUne");
             GameObject rightUneUne = new GameObject("rightUneUne");
 
-            _uneuneMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/SaberBlade");
+            _uneuneMaterial = new Material(_shader);
             _uneuneMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
             _uneuneMaterial.SetFloat("_Brightness", 0f);
 

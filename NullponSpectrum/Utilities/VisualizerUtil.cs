@@ -1,6 +1,7 @@
 ﻿using NullponSpectrum.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Zenject;
 
@@ -28,6 +29,13 @@ namespace NullponSpectrum.Utilities
             return needUpdate;
         }
 
+        public static Shader GetShader(string name)
+        {
+            var shaderes = Resources.FindObjectsOfTypeAll<Shader>();
+            Shader shader = shaderes.FirstOrDefault(x => x.name == name);
+            return shader;
+        }
+
         public static void SetUpdateTime(float time)
         {
             updateTime = time;
@@ -53,14 +61,14 @@ namespace NullponSpectrum.Utilities
             return timeSource;
         }
 
-        public static IDifficultyBeatmap GetCurrentmap()
+        public static GameplayCoreSceneSetupData GetCurrentmap()
         {
             return Currentmap;
         }
 
         public static float GetBeatsPerMinute()
         {
-            return Currentmap.level.beatsPerMinute;
+            return Currentmap.beatmapLevel.beatsPerMinute;
         }
 
         private void SaberColor()
@@ -94,14 +102,14 @@ namespace NullponSpectrum.Utilities
         }
 
         private static IAudioTimeSource timeSource;
-        public static IDifficultyBeatmap Currentmap { get; private set; }
+        public static GameplayCoreSceneSetupData Currentmap { get; private set; }
         private ColorScheme _colorScheme;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, IDifficultyBeatmap level, ColorScheme scheme)
+        public void Constructor(IAudioTimeSource source, GameplayCoreSceneSetupData gameplayCoreSceneSetupData, ColorScheme scheme)
         {
             timeSource = source;
-            Currentmap = level;
+            Currentmap = gameplayCoreSceneSetupData;
             this._colorScheme = scheme;
 
         }

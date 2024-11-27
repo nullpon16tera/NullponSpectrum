@@ -44,6 +44,7 @@ namespace NullponSpectrum.Utilities
 
         private void Start()
         {
+            
             Plugin.Log.Info($"AdjustFloor Before localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));
             StartCoroutine(FloorAdjust());
             Plugin.Log.Info($"AdjustFloor After localPosition " + NullponSpectrumFloor.transform.localPosition.ToString("F3"));

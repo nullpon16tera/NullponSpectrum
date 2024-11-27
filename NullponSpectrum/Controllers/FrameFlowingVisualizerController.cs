@@ -220,7 +220,8 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            _material = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _material = new Material(_shader);
             _material.SetColor("_Color", Color.white);
 
             _materialPropertyBlock = new MaterialPropertyBlock();

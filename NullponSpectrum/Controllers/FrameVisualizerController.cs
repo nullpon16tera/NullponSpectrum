@@ -122,7 +122,8 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.sensibility = 10f;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
 
-            _frameMaterial = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _frameMaterial = new Material(_shader);
             _frameMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();

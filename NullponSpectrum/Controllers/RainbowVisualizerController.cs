@@ -6,6 +6,7 @@ using UnityEngine;
 using Zenject;
 using SiraUtil.Sabers;
 using System.Linq;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -143,7 +144,8 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            _material = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _material = new Material(_shader);
             _material.SetColor("_Color", Color.red.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();

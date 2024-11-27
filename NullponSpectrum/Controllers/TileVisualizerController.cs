@@ -125,8 +125,8 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-
-            _tileMaterial = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _tileMaterial = new Material(_shader);
             _tileMaterial.SetColor("_Color", Color.black.ColorWithAlpha(1f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();

@@ -4,6 +4,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using ModestTree;
+using TMPro;
+using System.Linq;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -34,6 +38,8 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
+
+
             this.UpdateAudioSpectrums(obj);
         }
 
@@ -114,7 +120,8 @@ namespace NullponSpectrum.Controllers
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
-            _cubeMaterial = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _cubeMaterial = new Material(_shader);
             _cubeMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
@@ -127,7 +134,7 @@ namespace NullponSpectrum.Controllers
 
                 MeshRenderer childMeshRenderer = child.GetComponent<MeshRenderer>();
                 childMeshRenderer.material = _cubeMaterial;
-                
+
                 Transform cubeTransform = child.transform;
                 cubeTransform.localPosition = new Vector3(0f, 0.3f, 0f);
                 cubeTransform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
@@ -162,6 +169,7 @@ namespace NullponSpectrum.Controllers
         public void Constructor([Inject(Id = AudioSpectrum.BandType.FourBand)]AudioSpectrum audioSpectrum)
         {
             this._audioSpectrum = audioSpectrum;
+
         }
 
         protected virtual void Dispose(bool disposing)

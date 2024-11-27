@@ -20,6 +20,7 @@ namespace NullponSpectrum.Installers
             {
                 return;
             }
+
             this.Container.BindInterfacesAndSelfTo<Utilities.FloorAdjustorUtil>().FromNewComponentOnNewGameObject().AsSingle().NonLazy();
             this.Container.BindInterfacesAndSelfTo<FloorViewController>().AsCached().NonLazy();
             this.Container.BindInterfacesAndSelfTo<Utilities.VisualizerUtil>().AsCached().NonLazy();
@@ -88,6 +89,10 @@ namespace NullponSpectrum.Installers
             {
                 this.Container.BindInterfacesAndSelfTo<RainbowBugVisualizerController>().AsCached().NonLazy();
             }
+            /*if (PluginConfig.Instance.CutVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<CutVisualizerController>().AsCached().NonLazy();
+            }*/
         }
     }
 }

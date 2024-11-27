@@ -91,8 +91,9 @@ namespace NullponSpectrum.Controllers
             }
 
             // Sprites/Default
+            Shader _shader = VisualizerUtil.GetShader("Sprites/Default");
             lineRenderer = lineVisualizer.AddComponent<LineRenderer>();
-            lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+            lineRenderer.material = new Material(_shader);
             lineRenderer.useWorldSpace = false;
             lineRenderer.positionCount = linePositions.Length;
             lineRenderer.numCapVertices = 10;

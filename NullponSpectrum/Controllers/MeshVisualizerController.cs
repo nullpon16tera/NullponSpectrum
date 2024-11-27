@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -123,7 +124,8 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            _meshMaterial = new Material(Shader.Find("Custom/Glowing"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            _meshMaterial = new Material(_shader);
             _meshMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();

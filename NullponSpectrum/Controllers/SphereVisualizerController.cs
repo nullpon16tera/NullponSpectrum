@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -116,7 +117,8 @@ namespace NullponSpectrum.Controllers
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
 
-            _sphereMaterial = new Material(Shader.Find("Custom/SaberBlade"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/SaberBlade");
+            _sphereMaterial = new Material(_shader);
             _sphereMaterial.SetColor("_TintColor", Color.black.ColorWithAlpha(1f));
             _sphereMaterial.SetFloat("_Brightness", 0f);
 

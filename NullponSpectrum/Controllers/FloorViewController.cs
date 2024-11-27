@@ -1,9 +1,11 @@
 ﻿using NullponSpectrum.Configuration;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 using System.Linq;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -47,9 +49,10 @@ namespace NullponSpectrum.Controllers
 
         private void CreateFloorObject()
         {
+            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
             GameObject floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             MeshRenderer floorRenderer = floor.GetComponent<MeshRenderer>();
-            floorRenderer.material = new Material(Shader.Find("Custom/Glowing"));
+            floorRenderer.material = new Material(_shader);
             floorRenderer.material.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             floor.transform.SetParent(visualizerFloorRoot.transform, false);

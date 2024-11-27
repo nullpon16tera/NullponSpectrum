@@ -27,6 +27,7 @@ namespace NullponSpectrum.Configuration
         public virtual bool BoxVisualizer { get; set; } = false;
         public virtual bool RainbowBugVisualizer { get; set; } = false;
         public virtual bool RainbowVisualizer { get; set; } = false;
+        public virtual bool CutVisualizer { get; set; } = false;
 
         public virtual bool TileVisualizer { get; set; } = false;
 

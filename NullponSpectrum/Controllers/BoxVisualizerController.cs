@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
+using NullponSpectrum.Utilities;
 
 namespace NullponSpectrum.Controllers
 {
@@ -121,7 +122,8 @@ namespace NullponSpectrum.Controllers
             // Custom/Glowing Pointer
             // Custom/GlowingInstancedHD
             // Custom/ObstacleCoreLW
-            _material = new Material(Shader.Find("Custom/UnlitSpectrogram"));
+            Shader _shader = VisualizerUtil.GetShader("Custom/UnlitSpectrogram");
+            _material = new Material(_shader);
             _material.SetColor("_Color", Color.red.ColorWithAlpha(0.6f));
 
             _materialPropertyBlock = new MaterialPropertyBlock();
