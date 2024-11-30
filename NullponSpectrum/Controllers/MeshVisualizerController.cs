@@ -26,6 +26,7 @@ namespace NullponSpectrum.Controllers
         private GameObject meshVisualizerRoot;
 
         private Material _lineMaterial;
+        private Shader _shader;
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
@@ -117,6 +118,7 @@ namespace NullponSpectrum.Controllers
 
             meshVisualizerRoot = new GameObject("meshVisualizerRoot");
             meshVisualizerRoot.transform.SetParent(FloorViewController.visualizerFloorRoot.transform, false);
+            _shader = VisualizerUtil.GetShader("Custom/Glowing");
 
             CreateMainObject();
             CreateLineObject();
@@ -124,7 +126,7 @@ namespace NullponSpectrum.Controllers
 
         private void CreateMainObject()
         {
-            Shader _shader = VisualizerUtil.GetShader("Custom/Glowing");
+            
             _meshMaterial = new Material(_shader);
             _meshMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
@@ -160,7 +162,7 @@ namespace NullponSpectrum.Controllers
         private void CreateLineObject()
         {
             // メッシュになるようのオブジェクト生成
-            _lineMaterial = new Material(Shader.Find("Custom/Glowing"));
+            _lineMaterial = new Material(_shader);
             _lineMaterial.SetColor("_Color", Color.black.ColorWithAlpha(0f));
 
             for (int i = 0; i < 20; i++)
