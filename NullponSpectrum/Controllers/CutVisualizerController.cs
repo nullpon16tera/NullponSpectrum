@@ -1,6 +1,7 @@
 using NullponSpectrum.Configuration;
 using NullponSpectrum.Utilities;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
@@ -9,22 +10,17 @@ namespace NullponSpectrum.Controllers
     /// <summary>
     /// ノーツを斬ったとき、床ローカルで幅 3・奥行 1.5 の矩形内にパーティクルを Emit する。
     /// 見た目は <see cref="ParticleVisualizerController"/> と同じホタル風（発光テクスチャ・Additive・床面スライド）。
+    /// 粒パラメータは 3 ティア分 Initialize でベイクし、更新時はキュー＋色のみ。
     /// </summary>
-	public class CutVisualizerController : IInitializable, IDisposable
+    public class CutVisualizerController : IInitializable, IDisposable, ILateTickable
     {
-        /// <summary>長方形の半幅（全幅 3）</summary>
         private const float RectHalfWidth = 1.5f;
-        /// <summary>長方形の半奥行（全奥行 1.5）</summary>
         private const float RectHalfDepth = 0.75f;
-        /// <summary>ParticleVisualizer と同じ発生 Y</summary>
         private const float EmitY = 0.02f;
 
-        /// <summary>1 カットあたりの Emit 数の下限</summary>
         private const int CutEmitMin = 14;
-        /// <summary>1 カットあたりの Emit 数の上限</summary>
-        private const int CutEmitMax = 56;
+        private const int CutEmitMax = 42;
 
-        /// <summary>ParticleVisualizer に合わせた粒サイズ</summary>
         private const float ParticleSizeMin = 0.03f;
         private const float ParticleSizeMax = 0.064f;
         private const float LifetimeMin = 0.15f;
@@ -32,14 +28,41 @@ namespace NullponSpectrum.Controllers
         private const float PlaneSpeedMin = 0.12f;
         private const float PlaneSpeedMax = 0.95f;
 
+        private const int CutTierCount = 3;
+        private const int CutBakeMaxPerTier = 40;
+        private const int EmitCutParticlesPerFrameBudget = 22;
+        private const int CutEmitPendingQueueMax = 96;
+
+        private struct CutBakedEmit
+        {
+            public Vector3 Velocity;
+            public float StartLifetime;
+            public float StartSize;
+            public float WhiteMixT;
+        }
+
+        private struct PendingCutBurst
+        {
+            public int Tier;
+            public ColorType NoteColorType;
+            public int Emitted;
+            public int Total;
+        }
+
+        private static readonly float[] CutTierPintRepr = { 0.38f, 0.58f, 0.94f };
+        private static readonly int[] CutTierBaseCountRepr = { 16, 23, 30 };
+
         private GameObject _root;
         private ParticleSystem _particles;
         private ParticleSystemRenderer _particleRenderer;
         private Material _particleMaterial;
         private Texture2D _particleGlowTexture;
-        /// <summary>ノートカット通知。古いビルドは Main の ScoreController、新しめは GameplayCore の BeatmapObjectManager に載っている。</summary>
         private BeatmapObjectManager _beatmapObjectManager;
         private VisualizerUtil _visualizerUtil;
+
+        private CutBakedEmit[][] _cutTierBaked;
+        private int[] _cutTierEmitCounts;
+        private readonly List<PendingCutBurst> _pendingCutBursts = new List<PendingCutBurst>();
 
         [Inject]
         public void Constructor(BeatmapObjectManager beatmapObjectManager, VisualizerUtil visualizerUtil)
@@ -66,7 +89,17 @@ namespace NullponSpectrum.Controllers
             _root.transform.localScale = Vector3.one;
 
             BuildCutParticleSystem();
-            _beatmapObjectManager.noteWasCutEvent += OnNoteWasCut;
+            this._beatmapObjectManager.noteWasCutEvent += this.OnNoteWasCut;
+        }
+
+        public void LateTick()
+        {
+            if (!PluginConfig.Instance.Enable || !PluginConfig.Instance.CutVisualizer || this._particles == null)
+            {
+                return;
+            }
+
+            this.DrainCutEmitBudget();
         }
 
         private void OnNoteWasCut(NoteController noteController, in NoteCutInfo noteCutInfo)
@@ -94,71 +127,179 @@ namespace NullponSpectrum.Controllers
             float speedNorm = Mathf.Clamp01(noteCutInfo.saberSpeed / 42f);
             float okMul = noteCutInfo.allIsOK ? 1f : 0.62f;
             float hitIntensity = Mathf.Clamp01(0.35f + 0.65f * speedNorm) * okMul;
-
-            int count = Mathf.Clamp(Mathf.RoundToInt(Mathf.Lerp(CutEmitMin, CutEmitMax, hitIntensity)), CutEmitMin, CutEmitMax);
-            if (XrPerfHelper.ShouldReduceVisualizerCost())
-            {
-                count = Mathf.Max(CutEmitMin, Mathf.RoundToInt(count * 0.62f));
-            }
-
-            EmitCutPlaneBurst(count, hitIntensity, blockData.colorType);
+            int tier = this.SelectCutTier(hitIntensity);
+            this.EnqueueCutBurst(tier, blockData.colorType);
         }
 
-        /// <summary>ParticleVisualizer.EmitPlaneBurst と同系。ノーツ色を基調に矩形内・床面 XZ で Emit。</summary>
-        private void EmitCutPlaneBurst(int count, float hitIntensity, ColorType noteColorType)
+        private int SelectCutTier(float hitIntensity)
         {
-            this._visualizerUtil.RefreshSaberColorsNow();
+            if (hitIntensity < 0.36f)
+            {
+                return 0;
+            }
 
+            if (hitIntensity < 0.68f)
+            {
+                return 1;
+            }
+
+            return 2;
+        }
+
+        private void EnqueueCutBurst(int tier, ColorType noteColorType)
+        {
+            if (tier < 0 || tier >= CutTierCount || this._cutTierEmitCounts == null)
+            {
+                return;
+            }
+
+            int total = this._cutTierEmitCounts[tier];
+            int pending = 0;
+            for (int i = 0; i < this._pendingCutBursts.Count; i++)
+            {
+                PendingCutBurst b = this._pendingCutBursts[i];
+                pending += b.Total - b.Emitted;
+            }
+
+            while (pending + total > CutEmitPendingQueueMax && this._pendingCutBursts.Count > 0)
+            {
+                PendingCutBurst drop = this._pendingCutBursts[0];
+                pending -= drop.Total - drop.Emitted;
+                this._pendingCutBursts.RemoveAt(0);
+            }
+
+            if (pending + total <= CutEmitPendingQueueMax)
+            {
+                this._pendingCutBursts.Add(new PendingCutBurst
+                {
+                    Tier = tier,
+                    NoteColorType = noteColorType,
+                    Emitted = 0,
+                    Total = total
+                });
+            }
+        }
+
+        private void DrainCutEmitBudget()
+        {
+            if (this._particles == null || this._pendingCutBursts.Count == 0)
+            {
+                return;
+            }
+
+            int budget = EmitCutParticlesPerFrameBudget;
+            while (budget > 0 && this._pendingCutBursts.Count > 0)
+            {
+                PendingCutBurst head = this._pendingCutBursts[0];
+                int remain = head.Total - head.Emitted;
+                int take = Mathf.Min(budget, remain);
+                this.EmitCutBurstSlice(head.Tier, head.Emitted, take, head.NoteColorType);
+                head.Emitted += take;
+                budget -= take;
+                if (head.Emitted >= head.Total)
+                {
+                    this._pendingCutBursts.RemoveAt(0);
+                }
+                else
+                {
+                    this._pendingCutBursts[0] = head;
+                }
+            }
+        }
+
+        private void EmitCutBurstSlice(int tier, int offset, int count, ColorType noteColorType)
+        {
+            if (count <= 0 || this._cutTierBaked == null || tier < 0 || tier >= CutTierCount)
+            {
+                return;
+            }
+
+            this._visualizerUtil.RefreshSaberColorsNow();
             float[] hsv = noteColorType == ColorType.ColorA
                 ? VisualizerUtil.GetLeftSaberHSV()
                 : VisualizerUtil.GetRightSaberHSV();
             Color noteColor = Color.HSVToRGB(hsv[0], hsv[1], 1f);
+            float pint = Mathf.Clamp01(CutTierPintRepr[tier]);
 
-            float pint = Mathf.Clamp01(hitIntensity);
-
-            if (!_particles.isPlaying)
+            if (!this._particles.isPlaying)
             {
-                _particles.Play();
+                this._particles.Play();
             }
 
             for (int i = 0; i < count; i++)
             {
-                float t = UnityEngine.Random.value;
-                Color c = Color.Lerp(noteColor, Color.white, Mathf.Lerp(0.12f, 0.38f, t));
+                CutBakedEmit e = this._cutTierBaked[tier][offset + i];
+                Color c = Color.Lerp(noteColor, Color.white, Mathf.Lerp(0.12f, 0.38f, e.WhiteMixT));
                 c.a = Mathf.Lerp(0.65f, 0.95f, pint);
 
-                float x = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
-                float z = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
-                Vector3 pos = new Vector3(x, EmitY, z);
-
-                Vector2 dir2 = UnityEngine.Random.insideUnitCircle;
-                if (dir2.sqrMagnitude < 1e-6f)
-                {
-                    dir2 = Vector2.right;
-                }
-                dir2.Normalize();
-
-                float speed = Mathf.Lerp(PlaneSpeedMin, PlaneSpeedMax, pint * UnityEngine.Random.Range(0.85f, 1.1f));
-                speed *= Mathf.Lerp(0.55f, 1f, pint);
-                Vector3 vel = new Vector3(dir2.x * speed, 0f, dir2.y * speed);
-
-                float life = UnityEngine.Random.Range(LifetimeMin, LifetimeMax);
-
+                float px = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
+                float pz = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
                 var emitParams = new ParticleSystem.EmitParams
                 {
-                    position = pos,
-                    startLifetime = life,
-                    startSize = Mathf.Lerp(ParticleSizeMin, ParticleSizeMax, pint * UnityEngine.Random.Range(0.9f, 1.05f)),
-                    velocity = vel,
+                    position = new Vector3(px, EmitY, pz),
+                    startLifetime = e.StartLifetime,
+                    startSize = e.StartSize,
+                    velocity = e.Velocity,
                     startColor = c,
                     applyShapeToPosition = false
                 };
 
-                _particles.Emit(emitParams, 1);
+                this._particles.Emit(emitParams, 1);
             }
         }
 
-        /// <summary>ParticleVisualizer.BuildParticleSystem と同じ方針（ホタル用テクスチャ・グラデーション）。</summary>
+        private void BakeCutBurstTemplates()
+        {
+            this._cutTierBaked = new CutBakedEmit[CutTierCount][];
+            this._cutTierEmitCounts = new int[CutTierCount];
+
+            UnityEngine.Random.State previous = UnityEngine.Random.state;
+            try
+            {
+                for (int tier = 0; tier < CutTierCount; tier++)
+                {
+                    UnityEngine.Random.InitState(99102031 + tier * 17003);
+                    float pint = Mathf.Clamp01(CutTierPintRepr[tier]);
+                    int scaledCount = Mathf.Clamp(CutTierBaseCountRepr[tier], CutEmitMin, CutEmitMax);
+                    if (XrPerfHelper.ShouldReduceVisualizerCost())
+                    {
+                        scaledCount = Mathf.Max(CutEmitMin, Mathf.RoundToInt(scaledCount * 0.62f));
+                    }
+
+                    var arr = new CutBakedEmit[CutBakeMaxPerTier];
+                    for (int i = 0; i < scaledCount; i++)
+                    {
+                        Vector2 dir2 = UnityEngine.Random.insideUnitCircle;
+                        if (dir2.sqrMagnitude < 1e-6f)
+                        {
+                            dir2 = Vector2.right;
+                        }
+                        dir2.Normalize();
+
+                        float speed = Mathf.Lerp(PlaneSpeedMin, PlaneSpeedMax, pint * UnityEngine.Random.Range(0.85f, 1.1f));
+                        speed *= Mathf.Lerp(0.55f, 1f, pint);
+                        Vector3 vel = new Vector3(dir2.x * speed, 0f, dir2.y * speed);
+                        float life = UnityEngine.Random.Range(LifetimeMin, LifetimeMax);
+
+                        arr[i] = new CutBakedEmit
+                        {
+                            Velocity = vel,
+                            StartLifetime = life,
+                            StartSize = Mathf.Lerp(ParticleSizeMin, ParticleSizeMax, pint * UnityEngine.Random.Range(0.9f, 1.05f)),
+                            WhiteMixT = UnityEngine.Random.value
+                        };
+                    }
+
+                    this._cutTierBaked[tier] = arr;
+                    this._cutTierEmitCounts[tier] = scaledCount;
+                }
+            }
+            finally
+            {
+                UnityEngine.Random.state = previous;
+            }
+        }
+
         private void BuildCutParticleSystem()
         {
             var go = new GameObject("cutFireflyParticles");
@@ -218,6 +359,7 @@ namespace NullponSpectrum.Controllers
             }
 
             ps.Clear();
+            this.BakeCutBurstTemplates();
             ps.Play();
 
             if (XrPerfHelper.ShouldReduceVisualizerCost())
@@ -227,7 +369,6 @@ namespace NullponSpectrum.Controllers
             }
         }
 
-        /// <summary>ParticleVisualizer と同じ円形発光アルファテクスチャ。</summary>
         private static Texture2D CreateFireflyGlowTexture(int size = 64)
         {
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
@@ -266,7 +407,7 @@ namespace NullponSpectrum.Controllers
                 {
                     if (this._beatmapObjectManager != null)
                     {
-                        this._beatmapObjectManager.noteWasCutEvent -= OnNoteWasCut;
+                        this._beatmapObjectManager.noteWasCutEvent -= this.OnNoteWasCut;
                     }
 
                     if (_root != null)
@@ -289,6 +430,9 @@ namespace NullponSpectrum.Controllers
 
                     _particles = null;
                     _particleRenderer = null;
+                    this._cutTierBaked = null;
+                    this._cutTierEmitCounts = null;
+                    this._pendingCutBursts.Clear();
                 }
                 this._disposedValue = true;
             }

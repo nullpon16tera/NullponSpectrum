@@ -40,7 +40,7 @@ namespace NullponSpectrum.Controllers
         /// <summary>1 バーストあたりの Emit 数の下限</summary>
         private const int SparkEmitMin = 16;
         /// <summary>1 バーストあたりの Emit 数の上限</summary>
-        private const int SparkEmitMax = 72;
+        private const int SparkEmitMax = 74;
         /// <summary>上方向初速の上限を決めるときの「目標上昇量」（m 相当。1 Unity unit ≒ 1m 想定）</summary>
         private const float SparkMaxRiseMeters = 0.6f;
         /// <summary>Emit 時 startSize の下限（弱い粒の見た目の大きさ）</summary>
@@ -75,6 +75,19 @@ namespace NullponSpectrum.Controllers
         private const float SparkBurstLifeMulMin = 0.9f;
         /// <summary>強いヒット時の寿命倍率（やや長め）</summary>
         private const float SparkBurstLifeMulMax = 1.06f;
+        /// <summary>火花バーストを音圧で 3 段階に分け、Initialize でベイクする（更新時は Random・再計算なし）。</summary>
+        private const int SparkTierCount = 3;
+        /// <summary>各ティアの最大 Emit 数（SparkEmitMax × バースト倍率の余裕）</summary>
+        private const int SparkBakeMaxPerTier = 72;
+
+        /// <summary>1 粒分、Emit 直前まで固定（位置・速度・寿命・サイズ）。</summary>
+        private struct SparkBakedEmit
+        {
+            public Vector3 Position;
+            public Vector3 Velocity;
+            public float StartLifetime;
+            public float StartSize;
+        }
 
         private GameObject _root;
         /// <summary>頂点色のみ毎回更新。メッシュ本体は Build 時に確定した参照のまま。</summary>
@@ -91,6 +104,8 @@ namespace NullponSpectrum.Controllers
         private ParticleSystem _stageSparks;
         private Material _sparkMaterial;
         private float _sparkPrevDrumAverage;
+        private SparkBakedEmit[][] _sparkTierBaked;
+        private int[] _sparkTierEmitCounts;
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
@@ -194,80 +209,125 @@ namespace NullponSpectrum.Controllers
                 _stageSparks.Play();
             }
 
-            // バーストのベース粒数: 跳ね幅と平均レベルの両方で増やす
-            int count = Mathf.Clamp(Mathf.RoundToInt(jump * 520f + drumAverage * 72f), SparkEmitMin, SparkEmitMax);
-            if (XrPerfHelper.ShouldReduceVisualizerCost())
-            {
-                count = Mathf.Max(SparkEmitMin, Mathf.RoundToInt(count * 0.62f));
-            }
-            // 0..1 の総合強さ（バースト内の広がり・数・リングなどに使う）
+            // 0..1 の総合強さ → 3 ティアのどれか（粒パラメータは Initialize 時にベイク済み）
             float hitIntensity = Mathf.Clamp01((SparkIntensityFromAvg * drumAverage) + (SparkIntensityFromJump * jump));
-            EmitStageSparksBurst(count, hitIntensity);
+            this.EmitStageSparksBurstFromBaked(this.SelectSparkTier(hitIntensity));
         }
 
-        /// <summary>
-        /// 手動 Emit。粒の見た目サイズは SparkParticleSizeMin/Max と pint で決め、
-        /// 数・水平広がり・リング半径・寿命・上方向は hitIntensity（burst）でスケール。
-        /// </summary>
-        private void EmitStageSparksBurst(int count, float hitIntensity)
+        /// <summary>音圧（hitIntensity）で低・中・高のどのベイクセットを使うか。</summary>
+        private int SelectSparkTier(float hitIntensity)
         {
-            float burst = Mathf.Clamp01(hitIntensity);
-            // ヒットが強いほど 1 バーストの Emit 回数が増える
-            int scaledCount = Mathf.Clamp(
-                Mathf.RoundToInt(count * Mathf.Lerp(SparkBurstCountScaleMin, SparkBurstCountScaleMax, burst)),
-                SparkEmitMin,
-                SparkEmitMax);
-
-            // 水平方向初速ベースに掛ける倍率（「飛び散り」の広さ）
-            float spreadMul = Mathf.Lerp(SparkBurstSpreadMulMin, SparkBurstSpreadMulMax, burst);
-            // 上方向初速を vyCap まで持っていくブレンド（弱ヒットでは抑える）
-            float upBlend = Mathf.Lerp(SparkBurstUpBlendMin, 1f, burst);
-            // startLifetime に掛ける倍率
-            float lifeMul = Mathf.Lerp(SparkBurstLifeMulMin, SparkBurstLifeMulMax, burst);
-
-            // 発生位置を載せる円の半径（ステージ円より少し内側 0.94 × ヒットで縮む/広がる）
-            float ringRadius = (CircleRadius * 0.94f) * Mathf.Lerp(SparkBurstShapeRadiusMulMin, SparkBurstShapeRadiusMulMax, burst);
-
-            for (int i = 0; i < scaledCount; i++)
+            if (hitIntensity < 0.36f)
             {
-                // この粒だけの「強さ」: サイズ・初速ブレンドに使う 0..1
-                float pint = Mathf.Clamp01(hitIntensity * UnityEngine.Random.Range(0.9f, 1.05f));
-                float life = UnityEngine.Random.Range(SparkLifetimeMin, SparkLifetimeMax) * lifeMul;
+                return 0;
+            }
 
-                // 重力をざっくり入れた上で、寿命 life の間に SparkMaxRiseMeters 程度まで上がるよう vy の上限を決める
-                float vyCap = (SparkMaxRiseMeters / life) + (0.5f * SparkGravityEffective * life);
-                vyCap = Mathf.Min(vyCap, 1.2f);
-                float vy = Mathf.Lerp(0.22f, vyCap, pint * upBlend);
+            if (hitIntensity < 0.68f)
+            {
+                return 1;
+            }
 
-                // 水平初速: 単位円上のランダム方向 × 強さ（spreadMul でバースト全体スケール）
-                Vector2 xz = UnityEngine.Random.insideUnitCircle;
-                if (xz.sqrMagnitude < 1e-8f)
-                {
-                    xz = Vector2.right;
-                }
+            return 2;
+        }
 
-                xz = xz.normalized * (Mathf.Lerp(0.16f, 0.62f, pint) * spreadMul);
+        /// <summary>ベイク済みパラメータをそのまま Emit（Random・spread 再計算なし）。</summary>
+        private void EmitStageSparksBurstFromBaked(int tier)
+        {
+            if (this._sparkTierBaked == null || this._sparkTierEmitCounts == null || tier < 0 || tier >= SparkTierCount)
+            {
+                return;
+            }
 
-                float ringAngle = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
-                float ringR = ringRadius * UnityEngine.Random.Range(0.95f, 1f);
-                Vector3 ringPos = new Vector3(Mathf.Cos(ringAngle) * ringR, 0f, Mathf.Sin(ringAngle) * ringR);
-
-                // EmitParams: Shape モジュールは使わず、位置・寿命・サイズ・初速をこの発生だけで指定
+            int n = this._sparkTierEmitCounts[tier];
+            SparkBakedEmit[] layer = this._sparkTierBaked[tier];
+            for (int i = 0; i < n; i++)
+            {
+                SparkBakedEmit p = layer[i];
                 var emitParams = new ParticleSystem.EmitParams
                 {
-                    // ローカル空間での発生オフセット（水平リング上）。applyShapeToPosition=false なので Shape は位置に効かない
-                    position = ringPos,
-                    // この粒の消滅までの時間（秒）
-                    startLifetime = life,
-                    // ビルボードの基準スケール（pint で Min〜Max）
-                    startSize = Mathf.Lerp(SparkParticleSizeMin, SparkParticleSizeMax, pint),
-                    // 初速（Local）。XZ が水平、Y が上方向。main.startSpeed=0 なのでこれが実質の初速
-                    velocity = new Vector3(xz.x, vy, xz.y),
-                    // true だと Shape が position に加算されるため、手動リングと二重にならないよう false
+                    position = p.Position,
+                    startLifetime = p.StartLifetime,
+                    startSize = p.StartSize,
+                    velocity = p.Velocity,
                     applyShapeToPosition = false
                 };
 
-                _stageSparks.Emit(emitParams, 1);
+                this._stageSparks.Emit(emitParams, 1);
+            }
+        }
+
+        /// <summary>
+        /// 低・中・高の代表 hit（burst）と代表ベース粒数で 3 セット分を事前生成。軽量モード時の粒数削減もここで反映。
+        /// </summary>
+        private void BakeStageSparkBurstTemplates()
+        {
+            this._sparkTierBaked = new SparkBakedEmit[SparkTierCount][];
+            this._sparkTierEmitCounts = new int[SparkTierCount];
+
+            UnityEngine.Random.State previous = UnityEngine.Random.state;
+            try
+            {
+                for (int tier = 0; tier < SparkTierCount; tier++)
+                {
+                    UnityEngine.Random.InitState(54820481 + tier * 11003);
+
+                    // ティアごとの代表「音の強さ」0..1 と、旧ロジックに近い代表ベース粒数
+                    float burstRepr = tier == 0 ? 0.24f : (tier == 1 ? 0.52f : 0.96f);
+                    int baseCountRepr = tier == 0 ? 20 : (tier == 1 ? 38 : 58);
+
+                    int scaledCount = Mathf.Clamp(
+                        Mathf.RoundToInt(baseCountRepr * Mathf.Lerp(SparkBurstCountScaleMin, SparkBurstCountScaleMax, burstRepr)),
+                        SparkEmitMin,
+                        SparkEmitMax);
+                    if (XrPerfHelper.ShouldReduceVisualizerCost())
+                    {
+                        scaledCount = Mathf.Max(SparkEmitMin, Mathf.RoundToInt(scaledCount * 0.62f));
+                    }
+
+                    float spreadMul = Mathf.Lerp(SparkBurstSpreadMulMin, SparkBurstSpreadMulMax, burstRepr);
+                    float upBlend = Mathf.Lerp(SparkBurstUpBlendMin, 1f, burstRepr);
+                    float lifeMul = Mathf.Lerp(SparkBurstLifeMulMin, SparkBurstLifeMulMax, burstRepr);
+                    float ringRadius = (CircleRadius * 0.94f) * Mathf.Lerp(SparkBurstShapeRadiusMulMin, SparkBurstShapeRadiusMulMax, burstRepr);
+                    float hitIntensityRepr = burstRepr;
+
+                    var arr = new SparkBakedEmit[SparkBakeMaxPerTier];
+                    // 発生位置はリング上に等間隔（n 角形の頂点）。半径のばらつきは付けずステージ円に揃える。
+                    float angleStep = (Mathf.PI * 2f) / Mathf.Max(1, scaledCount);
+                    for (int i = 0; i < scaledCount; i++)
+                    {
+                        float pint = Mathf.Clamp01(hitIntensityRepr * UnityEngine.Random.Range(0.9f, 1.05f));
+                        float life = UnityEngine.Random.Range(SparkLifetimeMin, SparkLifetimeMax) * lifeMul;
+                        float vyCap = (SparkMaxRiseMeters / life) + (0.5f * SparkGravityEffective * life);
+                        vyCap = Mathf.Min(vyCap, 1.2f);
+                        float vy = Mathf.Lerp(0.22f, vyCap, pint * upBlend);
+
+                        Vector2 xz = UnityEngine.Random.insideUnitCircle;
+                        if (xz.sqrMagnitude < 1e-8f)
+                        {
+                            xz = Vector2.right;
+                        }
+
+                        xz = xz.normalized * (Mathf.Lerp(0.16f, 0.62f, pint) * spreadMul);
+
+                        float ringAngle = angleStep * (i + 0.5f);
+                        Vector3 ringPos = new Vector3(Mathf.Cos(ringAngle) * ringRadius, 0f, Mathf.Sin(ringAngle) * ringRadius);
+
+                        arr[i] = new SparkBakedEmit
+                        {
+                            Position = ringPos,
+                            StartLifetime = life,
+                            StartSize = Mathf.Lerp(SparkParticleSizeMin, SparkParticleSizeMax, pint),
+                            Velocity = new Vector3(xz.x, vy, xz.y)
+                        };
+                    }
+
+                    this._sparkTierBaked[tier] = arr;
+                    this._sparkTierEmitCounts[tier] = scaledCount;
+                }
+            }
+            finally
+            {
+                UnityEngine.Random.state = previous;
             }
         }
 
@@ -347,6 +407,7 @@ namespace NullponSpectrum.Controllers
             }
 
             ps.Clear();
+            this.BakeStageSparkBurstTemplates();
             ps.Play();
         }
 
@@ -558,6 +619,8 @@ namespace NullponSpectrum.Controllers
                     }
 
                     _stageSparks = null;
+                    _sparkTierBaked = null;
+                    _sparkTierEmitCounts = null;
                     _colors = null;
                     _built = false;
                 }

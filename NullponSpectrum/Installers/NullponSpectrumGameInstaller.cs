@@ -102,10 +102,6 @@ namespace NullponSpectrum.Installers
             {
                 this.Container.BindInterfacesAndSelfTo<RainbowBugVisualizerController>().AsCached().NonLazy();
             }
-            if (PluginConfig.Instance.CutVisualizer)
-            {
-                this.Container.BindInterfacesAndSelfTo<CutVisualizerController>().AsCached().NonLazy();
-            }
         }
     }
 }

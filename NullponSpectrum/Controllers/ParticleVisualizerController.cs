@@ -2,6 +2,7 @@ using NullponSpectrum.AudioSpectrums;
 using NullponSpectrum.Configuration;
 using NullponSpectrum.Utilities;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using Zenject;
 
@@ -56,6 +57,24 @@ namespace NullponSpectrum.Controllers
         private const int EmitParticlesPerFrameBudget = 28;
         /// <summary>未処理 Emit のキュー上限（溜まりすぎ防止）</summary>
         private const int EmitPendingQueueMax = 220;
+        /// <summary>床パーティクルを音圧 3 段階に分け Initialize でベイク（更新時は Random なし）。</summary>
+        private const int ParticleTierCount = 3;
+        private const int ParticleBakeMaxPerTier = 140;
+
+        private struct PlaneBakedEmit
+        {
+            public Vector3 Velocity;
+            public float StartLifetime;
+            public float StartSize;
+            public float SaberBlendT;
+        }
+
+        private struct PendingPlaneBurst
+        {
+            public int Tier;
+            public int Emitted;
+            public int Total;
+        }
 
         private GameObject _root;
         private ParticleSystem _particles;
@@ -64,8 +83,11 @@ namespace NullponSpectrum.Controllers
         /// <summary>ホタル風の柔らかい発光用（中心明るく外周フェード）。実行時生成し Dispose で破棄。</summary>
         private Texture2D _particleGlowTexture;
         private float _prevDrumAverage;
-        private int _pendingEmitCount;
-        private float _pendingEmitPint;
+        private readonly List<PendingPlaneBurst> _pendingPlaneBursts = new List<PendingPlaneBurst>();
+        private PlaneBakedEmit[][] _planeTierBaked;
+        private int[] _planeTierEmitCounts;
+        private static readonly float[] ParticleTierPintRepr = { 0.28f, 0.58f, 0.96f };
+        private static readonly int[] ParticleTierBaseCountRepr = { 44, 78, 118 };
         private bool _built;
 
         private AudioSpectrum _audioSpectrum;
@@ -141,98 +163,170 @@ namespace NullponSpectrum.Controllers
                 this._particles.Play();
             }
 
-            // 1 バーストの粒数: 跳ね（アタック）と平均レベルの両方で増やし、EmitMin〜EmitMax でクリップ
-            int count = Mathf.Clamp(
-                Mathf.RoundToInt(jump * EmitCountJumpScale + drumAverage * EmitCountAvgScale),
-                EmitMin,
-                EmitMax);
-            if (XrPerfHelper.ShouldReduceVisualizerCost())
-            {
-                int capMax = Mathf.Max(EmitMin, EmitMax / 2);
-                int capMin = Mathf.Max(8, EmitMin / 2);
-                count = Mathf.Clamp(Mathf.RoundToInt(count * 0.5f), capMin, capMax);
-            }
-            // 0..1 の総合強さ（初速・サイズ・アルファのブレンドに使う）
+            // 0..1 の総合強さ → ティア（粒パターンは Initialize でベイク済み）
             float hitIntensity = Mathf.Clamp01((IntensityFromAvg * drumAverage) + (IntensityFromJump * jump));
-            this._pendingEmitCount = Mathf.Min(this._pendingEmitCount + count, EmitPendingQueueMax);
-            this._pendingEmitPint = Mathf.Max(this._pendingEmitPint, hitIntensity);
+            this.EnqueuePlaneBurst(this.SelectParticleTier(hitIntensity));
         }
 
-        /// <summary>キューに溜まった Emit を 1 フレーム分だけ処理する。</summary>
-        private void DrainParticleEmitBudget()
+        private int SelectParticleTier(float hitIntensity)
         {
-            if (this._particles == null || this._pendingEmitCount <= 0)
+            if (hitIntensity < 0.36f)
+            {
+                return 0;
+            }
+
+            if (hitIntensity < 0.68f)
+            {
+                return 1;
+            }
+
+            return 2;
+        }
+
+        private void EnqueuePlaneBurst(int tier)
+        {
+            if (tier < 0 || tier >= ParticleTierCount || this._planeTierEmitCounts == null)
             {
                 return;
             }
 
-            int n = Mathf.Min(EmitParticlesPerFrameBudget, this._pendingEmitCount);
-            this._pendingEmitCount -= n;
-            float pint = this._pendingEmitPint;
-            if (this._pendingEmitCount <= 0)
+            int total = this._planeTierEmitCounts[tier];
+            int pending = 0;
+            for (int i = 0; i < this._pendingPlaneBursts.Count; i++)
             {
-                this._pendingEmitPint = 0f;
+                PendingPlaneBurst b = this._pendingPlaneBursts[i];
+                pending += b.Total - b.Emitted;
             }
 
-            this.EmitPlaneBurst(n, pint);
+            while (pending + total > EmitPendingQueueMax && this._pendingPlaneBursts.Count > 0)
+            {
+                PendingPlaneBurst drop = this._pendingPlaneBursts[0];
+                pending -= drop.Total - drop.Emitted;
+                this._pendingPlaneBursts.RemoveAt(0);
+            }
+
+            if (pending + total <= EmitPendingQueueMax)
+            {
+                this._pendingPlaneBursts.Add(new PendingPlaneBurst { Tier = tier, Emitted = 0, Total = total });
+            }
         }
 
-        /// <summary>長方形内のランダム位置から、床面方向（XZ）へ飛ぶ粒を手動 Emit。Shape は無効のため位置はすべてここで指定。</summary>
-        private void EmitPlaneBurst(int count, float hitIntensity)
+        /// <summary>キュー先頭のバーストからフレーム予算分だけベイク済み粒を Emit。</summary>
+        private void DrainParticleEmitBudget()
         {
-            this._visualizerUtil.RefreshSaberColorsNow();
+            if (this._particles == null || this._pendingPlaneBursts.Count == 0)
+            {
+                return;
+            }
 
+            int budget = EmitParticlesPerFrameBudget;
+            while (budget > 0 && this._pendingPlaneBursts.Count > 0)
+            {
+                PendingPlaneBurst head = this._pendingPlaneBursts[0];
+                int remain = head.Total - head.Emitted;
+                int take = Mathf.Min(budget, remain);
+                this.EmitPlaneBurstSlice(head.Tier, head.Emitted, take);
+                head.Emitted += take;
+                budget -= take;
+                if (head.Emitted >= head.Total)
+                {
+                    this._pendingPlaneBursts.RemoveAt(0);
+                }
+                else
+                {
+                    this._pendingPlaneBursts[0] = head;
+                }
+            }
+        }
+
+        /// <summary>ベイク済みの一部を Emit。位置は毎 Emit で矩形内ランダム（以前の挙動）。色は左右セイバー。</summary>
+        private void EmitPlaneBurstSlice(int tier, int offset, int count)
+        {
+            if (count <= 0 || this._planeTierBaked == null || tier < 0 || tier >= ParticleTierCount)
+            {
+                return;
+            }
+
+            this._visualizerUtil.RefreshSaberColorsNow();
             float[] leftHsv = VisualizerUtil.GetLeftSaberHSV();
             float[] rightHsv = VisualizerUtil.GetRightSaberHSV();
             Color colorLeft = Color.HSVToRGB(leftHsv[0], leftHsv[1], 1f);
             Color colorRight = Color.HSVToRGB(rightHsv[0], rightHsv[1], 1f);
-
-            // このバースト全体の強さ 0..1（粒ごとにさらにランダムを掛ける）
-            float pint = Mathf.Clamp01(hitIntensity);
+            float pint = Mathf.Clamp01(ParticleTierPintRepr[tier]);
 
             for (int i = 0; i < count; i++)
             {
-                // 左右セイバー色の間をランダム補間
-                float t = UnityEngine.Random.value;
-                Color c = Color.Lerp(colorLeft, colorRight, t);
-                // 強いヒットほど不透明に近づける（アルファの下限 0.65 〜 上限 0.95）
+                PlaneBakedEmit e = this._planeTierBaked[tier][offset + i];
+                Color c = Color.Lerp(colorLeft, colorRight, e.SaberBlendT);
                 c.a = Mathf.Lerp(0.65f, 0.95f, pint);
 
-                // 指定長方形（XZ）内のランダム座標
-                float x = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
-                float z = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
-                Vector3 pos = new Vector3(x, EmitY, z);
-
-                // 床面内の飛び方向（単位ベクトル）
-                Vector2 dir2 = UnityEngine.Random.insideUnitCircle;
-                if (dir2.sqrMagnitude < 1e-6f)
-                {
-                    dir2 = Vector2.right;
-                }
-                dir2.Normalize();
-
-                // 初速: Min〜Max を pint で補間し、粒ごとに 0.85〜1.1 倍でばらつき
-                float speed = Mathf.Lerp(PlaneSpeedMin, PlaneSpeedMax, pint * UnityEngine.Random.Range(0.85f, 1.1f));
-                // 弱いヒットでは全体を 0.55〜1 倍で抑える
-                speed *= Mathf.Lerp(0.55f, 1f, pint);
-                // Y は 0 のまま＝平面上のスライド
-                Vector3 vel = new Vector3(dir2.x * speed, 0f, dir2.y * speed);
-
-                float life = UnityEngine.Random.Range(LifetimeMin, LifetimeMax);
-
+                float px = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
+                float pz = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
                 var emitParams = new ParticleSystem.EmitParams
                 {
-                    position = pos,
-                    startLifetime = life,
-                    // 粒ごとにサイズに ±5% のばらつき
-                    startSize = Mathf.Lerp(ParticleSizeMin, ParticleSizeMax, pint * UnityEngine.Random.Range(0.9f, 1.05f)),
-                    velocity = vel,
+                    position = new Vector3(px, EmitY, pz),
+                    startLifetime = e.StartLifetime,
+                    startSize = e.StartSize,
+                    velocity = e.Velocity,
                     startColor = c,
-                    // false: Shape モジュールを位置に足さない（長方形内の手動座標と二重にならない）
                     applyShapeToPosition = false
                 };
 
                 this._particles.Emit(emitParams, 1);
+            }
+        }
+
+        private void BakeParticlePlaneTemplates()
+        {
+            this._planeTierBaked = new PlaneBakedEmit[ParticleTierCount][];
+            this._planeTierEmitCounts = new int[ParticleTierCount];
+
+            UnityEngine.Random.State previous = UnityEngine.Random.state;
+            try
+            {
+                for (int tier = 0; tier < ParticleTierCount; tier++)
+                {
+                    UnityEngine.Random.InitState(77210433 + tier * 13001);
+                    float pint = Mathf.Clamp01(ParticleTierPintRepr[tier]);
+                    int scaledCount = Mathf.Clamp(ParticleTierBaseCountRepr[tier], EmitMin, EmitMax);
+                    if (XrPerfHelper.ShouldReduceVisualizerCost())
+                    {
+                        int capMax = Mathf.Max(EmitMin, EmitMax / 2);
+                        int capMin = Mathf.Max(8, EmitMin / 2);
+                        scaledCount = Mathf.Clamp(Mathf.RoundToInt(scaledCount * 0.5f), capMin, capMax);
+                    }
+
+                    var arr = new PlaneBakedEmit[ParticleBakeMaxPerTier];
+                    for (int i = 0; i < scaledCount; i++)
+                    {
+                        Vector2 dir2 = UnityEngine.Random.insideUnitCircle;
+                        if (dir2.sqrMagnitude < 1e-6f)
+                        {
+                            dir2 = Vector2.right;
+                        }
+                        dir2.Normalize();
+
+                        float speed = Mathf.Lerp(PlaneSpeedMin, PlaneSpeedMax, pint * UnityEngine.Random.Range(0.85f, 1.1f));
+                        speed *= Mathf.Lerp(0.55f, 1f, pint);
+                        Vector3 vel = new Vector3(dir2.x * speed, 0f, dir2.y * speed);
+                        float life = UnityEngine.Random.Range(LifetimeMin, LifetimeMax);
+
+                        arr[i] = new PlaneBakedEmit
+                        {
+                            Velocity = vel,
+                            StartLifetime = life,
+                            StartSize = Mathf.Lerp(ParticleSizeMin, ParticleSizeMax, pint * UnityEngine.Random.Range(0.9f, 1.05f)),
+                            SaberBlendT = UnityEngine.Random.value
+                        };
+                    }
+
+                    this._planeTierBaked[tier] = arr;
+                    this._planeTierEmitCounts[tier] = scaledCount;
+                }
+            }
+            finally
+            {
+                UnityEngine.Random.state = previous;
             }
         }
 
@@ -336,6 +430,7 @@ namespace NullponSpectrum.Controllers
             }
 
             ps.Clear();
+            this.BakeParticlePlaneTemplates();
             ps.Play();
 
             if (XrPerfHelper.ShouldReduceVisualizerCost())
@@ -367,8 +462,7 @@ namespace NullponSpectrum.Controllers
 
             this.BuildParticleSystem();
             this._prevDrumAverage = 0f;
-            this._pendingEmitCount = 0;
-            this._pendingEmitPint = 0f;
+            this._pendingPlaneBursts.Clear();
             this._built = true;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
         }
@@ -406,6 +500,9 @@ namespace NullponSpectrum.Controllers
 
                     this._particles = null;
                     this._particleRenderer = null;
+                    this._planeTierBaked = null;
+                    this._planeTierEmitCounts = null;
+                    this._pendingPlaneBursts.Clear();
                     this._built = false;
                 }
                 this._disposedValue = true;
