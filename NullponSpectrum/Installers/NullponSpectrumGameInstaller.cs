@@ -1,4 +1,4 @@
-﻿using NullponSpectrum.Configuration;
+using NullponSpectrum.Configuration;
 using NullponSpectrum.AudioSpectrums;
 using NullponSpectrum.Controllers;
 using Zenject;
@@ -51,7 +51,12 @@ namespace NullponSpectrum.Installers
             {
                 this.Container.BindInterfacesAndSelfTo<TileVisualizerController>().AsCached().NonLazy();
             }
-            
+
+            if (PluginConfig.Instance.CutVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<CutVisualizerController>().AsCached().NonLazy();
+            }
+
             if (PluginConfig.Instance.MeshVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<MeshVisualizerController>().AsCached().NonLazy();
@@ -68,6 +73,14 @@ namespace NullponSpectrum.Installers
             if (PluginConfig.Instance.SphereVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<SphereVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.StageVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<StageVisualizerController>().AsCached().NonLazy();
+            }
+            if (PluginConfig.Instance.ParticleVisualizer)
+            {
+                this.Container.BindInterfacesAndSelfTo<ParticleVisualizerController>().AsCached().NonLazy();
             }
             if (PluginConfig.Instance.UneUneVisualizer)
             {
@@ -89,10 +102,10 @@ namespace NullponSpectrum.Installers
             {
                 this.Container.BindInterfacesAndSelfTo<RainbowBugVisualizerController>().AsCached().NonLazy();
             }
-            /*if (PluginConfig.Instance.CutVisualizer)
+            if (PluginConfig.Instance.CutVisualizer)
             {
                 this.Container.BindInterfacesAndSelfTo<CutVisualizerController>().AsCached().NonLazy();
-            }*/
+            }
         }
     }
 }

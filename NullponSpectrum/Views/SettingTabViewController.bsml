@@ -1,4 +1,4 @@
-﻿<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
+<bg xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='https://monkeymanboy.github.io/BSML-Docs/ https://raw.githubusercontent.com/monkeymanboy/BSML-Docs/gh-pages/BSMLSchema.xsd'>
 	<vertical child-control-height='false' pad-top='-4'>
 		<tab-selector tab-tag='spectrum-tab' />
 	</vertical>
@@ -8,7 +8,7 @@
 				<horizontal pad-bottom='2'>
 					<bool-setting text='Enable' value='enable' apply-on-change='true'></bool-setting>
 				</horizontal>
-				
+
 				<horizontal child-control-width='false' child-expand-width='false' spacing='2' pad-left='-2'>
 					<vertical child-control-height='false' child-expand-height='false'>
 						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
@@ -16,17 +16,18 @@
 							<modifier value='FrameVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameVisualizer.png' text='Frame Visualizer'></modifier>
 							<modifier value='FrameFlowingVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.FrameFlowingVisualizer.png' text='Frame Flowing Visualizer'></modifier>
 							<modifier value='LineVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.LineVisualizer.png' text='Line Visualizer'></modifier>
+							<modifier value='ParticleVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.ParticleVisualizer.png' text='Particle Visualizer'></modifier>
+							<modifier value='CutVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.CutVisualizer.png' text='Cut Visualizer'></modifier>
 						</vertical>
 					</vertical>
-					<vertical child-control-height='false'>
-						<vertical child-control-height='false' child-expand-height='false'>
-							<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
-								<modifier value='TileVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.TileVisualizer.png' text='Tile Visualizer'></modifier>
-								<modifier value='MeshVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Mesh Visualizer'></modifier>
-								<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
-								<modifier value='RainbowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='Rainbow Visualizer'></modifier>
-								<modifier value='RainbowBugVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='RainbowBug Visualizer'></modifier>
-							</vertical>
+					<vertical child-control-height='false' child-expand-height='false'>
+						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+							<modifier value='StageVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StageVisualizer.png' text='Stage Visualizer'></modifier>
+							<modifier value='TileVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.TileVisualizer.png' text='Tile Visualizer'></modifier>
+							<modifier value='MeshVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.MeshVisualizer.png' text='Mesh Visualizer'></modifier>
+							<modifier value='StripeVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StripeVisualizer.png' text='Stripe Visualizer'></modifier>
+							<modifier value='RainbowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='Rainbow Visualizer'></modifier>
+							<modifier value='RainbowBugVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.RainbowVisualizer.png' text='RainbowBug Visualizer'></modifier>
 						</vertical>
 					</vertical>
 					<vertical child-control-height='false' child-expand-height='false'>
@@ -35,8 +36,8 @@
 							<modifier value='UneUneVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='UneUne Visualizer'></modifier>
 							<modifier value='LinebowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.LinebowVisualizer.png' text='Linebow Visualizer'></modifier>
 							<!--
-							<modifier value='BoxVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='Box Visualizer'></modifier>
-							-->
+								<modifier value='BoxVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='Box Visualizer'></modifier>
+								-->
 						</vertical>
 					</vertical>
 				</horizontal>
@@ -57,6 +58,9 @@
 						</horizontal>
 						<horizontal>
 							<slider-setting value='floorHeight' apply-on-change='true' text='Floor Height' hover-hint='The default value is 0.01' min='0' max='2' increment='0.05'></slider-setting>
+						</horizontal>
+						<horizontal>
+							<bool-setting value='realtimeSaberColorUpdates' apply-on-change='true' text='Realtime saber colors (floor FX)' hover-hint='ON: update saber colors every frame for floor visualizers (higher cost). OFF: only at song start and when Stage/Particle refresh colors (lighter).'></bool-setting>
 						</horizontal>
 					</vertical>
 				</horizontal>

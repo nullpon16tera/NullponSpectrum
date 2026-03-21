@@ -1,13 +1,13 @@
-﻿using NullponSpectrum.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using NullponSpectrum.Configuration;
+using SiraUtil.Sabers;
 using UnityEngine;
 using Zenject;
 
 namespace NullponSpectrum.Utilities
 {
-    class VisualizerUtil : IInitializable, ITickable
+    public class VisualizerUtil : IInitializable, ILateTickable
     {
 
         public static Color saberAColor { get; private set; }
@@ -56,6 +56,12 @@ namespace NullponSpectrum.Utilities
             return rightHSV;
         }
 
+        /// <summary>プレイ中の左右セイバー色を反映（Stage のスペクトラム直前用）。</summary>
+        public void RefreshSaberColorsNow()
+        {
+            this.RefreshSaberColorsFromGame(forceSaberRescan: true);
+        }
+
         public static IAudioTimeSource GetAudioTimeSource()
         {
             return timeSource;
@@ -71,10 +77,25 @@ namespace NullponSpectrum.Utilities
             return Currentmap.beatmapLevel.beatsPerMinute;
         }
 
-        private void SaberColor()
+        /// <summary>SiraUtil の物理セイバー色 → Zenject 注入の ColorManager → ColorScheme。</summary>
+        /// <param name="forceSaberRescan">true のときは毎回 Saber を列挙（明示更新）。LateTick は false で間引き。</param>
+        private void RefreshSaberColorsFromGame(bool forceSaberRescan = false)
         {
-            saberAColor = this._colorScheme.saberAColor;
-            saberBColor = this._colorScheme.saberBColor;
+            if (this.TryGetSiraPhysicalSaberColors(out Color cA, out Color cB, forceSaberRescan))
+            {
+                saberAColor = cA;
+                saberBColor = cB;
+            }
+            else if (this._colorManager != null)
+            {
+                saberAColor = this._colorManager.ColorForSaberType(SaberType.SaberA);
+                saberBColor = this._colorManager.ColorForSaberType(SaberType.SaberB);
+            }
+            else
+            {
+                saberAColor = this._colorScheme.saberAColor;
+                saberBColor = this._colorScheme.saberBColor;
+            }
 
             float leftH, leftS, leftV;
             float rightH, rightS, rightV;
@@ -89,8 +110,89 @@ namespace NullponSpectrum.Utilities
             rightHSV[2] = rightV;
         }
 
-        public void Tick()
+        /// <summary>SiraUtil が入っていて Saber が揃うとき、モデル実色（カスタムセイバー等）を優先。</summary>
+        private bool TryGetSiraPhysicalSaberColors(out Color colorA, out Color colorB, bool forceRescan)
         {
+            colorA = default;
+            colorB = default;
+            if (this._saberModelManager == null)
+            {
+                this._cachedSaberA = null;
+                this._cachedSaberB = null;
+                return false;
+            }
+
+            int frame = Time.frameCount;
+            bool cacheValid = !forceRescan
+                && this._cachedSaberA != null
+                && this._cachedSaberB != null
+                && frame - this._cachedSaberScanFrame < SaberRescanIntervalFrames;
+
+            if (cacheValid)
+            {
+                colorA = this._saberModelManager.GetPhysicalSaberColor(this._cachedSaberA);
+                colorB = this._saberModelManager.GetPhysicalSaberColor(this._cachedSaberB);
+                return true;
+            }
+
+            Saber saberA = null;
+            Saber saberB = null;
+            Saber[] sabers = Resources.FindObjectsOfTypeAll<Saber>();
+            for (int i = 0; i < sabers.Length; i++)
+            {
+                Saber s = sabers[i];
+                if (s == null)
+                {
+                    continue;
+                }
+
+                if (!s.gameObject.scene.IsValid())
+                {
+                    continue;
+                }
+
+                if (s.saberType == SaberType.SaberA && saberA == null)
+                {
+                    saberA = s;
+                }
+                else if (s.saberType == SaberType.SaberB && saberB == null)
+                {
+                    saberB = s;
+                }
+
+                if (saberA != null && saberB != null)
+                {
+                    break;
+                }
+            }
+
+            this._cachedSaberScanFrame = frame;
+            this._cachedSaberA = saberA;
+            this._cachedSaberB = saberB;
+
+            if (saberA == null || saberB == null)
+            {
+                return false;
+            }
+
+            colorA = this._saberModelManager.GetPhysicalSaberColor(saberA);
+            colorB = this._saberModelManager.GetPhysicalSaberColor(saberB);
+            return true;
+        }
+
+        public void LateTick()
+        {
+            if (!PluginConfig.Instance.HasAnyActiveSpectrumFloorVisualizer())
+            {
+                needUpdate = false;
+                return;
+            }
+
+            if (PluginConfig.Instance.RealtimeSaberColorUpdates)
+            {
+                this.RefreshSaberColorsFromGame(forceSaberRescan: false);
+            }
+
             updateTime += Time.deltaTime;
             var bpmSpeed = -(GetBeatsPerMinute() * 0.00001f);
             needUpdate = (s_updateThresholdTime + bpmSpeed) < updateTime;
@@ -98,20 +200,27 @@ namespace NullponSpectrum.Utilities
 
         public void Initialize()
         {
-            SaberColor();
+            this.RefreshSaberColorsFromGame(forceSaberRescan: true);
         }
 
         private static IAudioTimeSource timeSource;
         public static GameplayCoreSceneSetupData Currentmap { get; private set; }
         private ColorScheme _colorScheme;
+        private ColorManager _colorManager;
+        private SaberModelManager _saberModelManager;
+        private Saber _cachedSaberA;
+        private Saber _cachedSaberB;
+        private int _cachedSaberScanFrame = int.MinValue;
+        private const int SaberRescanIntervalFrames = 48;
 
         [Inject]
-        public void Constructor(IAudioTimeSource source, GameplayCoreSceneSetupData gameplayCoreSceneSetupData, ColorScheme scheme)
+        public void Constructor(IAudioTimeSource source, GameplayCoreSceneSetupData gameplayCoreSceneSetupData, ColorScheme scheme, [InjectOptional] ColorManager colorManager, [InjectOptional] SaberModelManager saberModelManager)
         {
             timeSource = source;
             Currentmap = gameplayCoreSceneSetupData;
             this._colorScheme = scheme;
-
+            this._colorManager = colorManager;
+            this._saberModelManager = saberModelManager;
         }
     }
 }

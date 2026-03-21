@@ -1,9 +1,11 @@
-﻿using NullponSpectrum.Configuration;
+using NullponSpectrum.Configuration;
 using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.GameplaySetup;
 using BeatSaberMarkupLanguage.ViewControllers;
 using BeatSaberMarkupLanguage.Parser;
+using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,48 @@ namespace NullponSpectrum.Views
         [UIParams]
         BSMLParserParams parserParams;
 
+        /// <summary>Gameplay Setup のタブ内で ScrollRect に親からの高さが付かないため、LayoutElement で確保する。</summary>
+        private const float ScrollPreferredHeightSettings = 54f;
+        private const float ScrollPreferredHeightVisualizer = 46f;
+
+        [UIComponent("nullpon-scroll-settings")]
+        private RectTransform _scrollSettingsContent;
+
+        [UIComponent("nullpon-scroll-visualizer")]
+        private RectTransform _scrollVisualizerContent;
+
+        [UIAction("#post-parse")]
+        private void PostParseScrollHeights()
+        {
+            this.ApplyScrollPreferredHeight(this._scrollSettingsContent, ScrollPreferredHeightSettings);
+            this.ApplyScrollPreferredHeight(this._scrollVisualizerContent, ScrollPreferredHeightVisualizer);
+        }
+
+        private void ApplyScrollPreferredHeight(RectTransform content, float preferredHeight)
+        {
+            if (content == null)
+            {
+                return;
+            }
+
+            ScrollRect scrollRect = content.GetComponentInParent<ScrollRect>();
+            if (scrollRect == null)
+            {
+                return;
+            }
+
+            var scrollRoot = scrollRect.transform as RectTransform;
+            LayoutElement layout = scrollRoot.GetComponent<LayoutElement>();
+            if (layout == null)
+            {
+                layout = scrollRoot.gameObject.AddComponent<LayoutElement>();
+            }
+
+            layout.preferredHeight = preferredHeight;
+            layout.minHeight = Mathf.Max(28f, preferredHeight * 0.5f);
+            layout.flexibleHeight = 0f;
+        }
+
         public void updateUI()
         {
             parserParams.EmitEvent("cancel");
@@ -30,6 +74,13 @@ namespace NullponSpectrum.Views
         {
             get => conf.Enable;
             set => conf.Enable = value;
+        }
+
+        [UIValue("realtimeSaberColorUpdates")]
+        public bool RealtimeSaberColorUpdates
+        {
+            get => conf.RealtimeSaberColorUpdates;
+            set => conf.RealtimeSaberColorUpdates = value;
         }
 
         [UIValue("isFloorHeight")]
@@ -100,6 +151,40 @@ namespace NullponSpectrum.Views
             set => conf.LineVisualizer = value;
         }
 
+        [UIValue("ParticleVisualizer")]
+        public bool ParticleVisualizer
+        {
+            get => conf.ParticleVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.CutVisualizer) conf.CutVisualizer = false;
+                }
+
+                conf.ParticleVisualizer = value;
+
+                updateUI();
+            }
+        }
+
+        [UIValue("CutVisualizer")]
+        public bool CutVisualizer
+        {
+            get => conf.CutVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.ParticleVisualizer) conf.ParticleVisualizer = false;
+                }
+
+                conf.CutVisualizer = value;
+
+                updateUI();
+            }
+        }
+
         [UIValue("TileVisualizer")]
         public bool TileVisualizer
         {
@@ -112,6 +197,7 @@ namespace NullponSpectrum.Views
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                     if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
+                    if (conf.StageVisualizer) conf.StageVisualizer = false;
                 }
 
                 conf.TileVisualizer = value;
@@ -132,6 +218,7 @@ namespace NullponSpectrum.Views
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                     if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
+                    if (conf.StageVisualizer) conf.StageVisualizer = false;
                 }
 
                 conf.MeshVisualizer = value;
@@ -152,9 +239,31 @@ namespace NullponSpectrum.Views
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
                     if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
+                    if (conf.StageVisualizer) conf.StageVisualizer = false;
                 }
 
                 conf.StripeVisualizer = value;
+
+                updateUI();
+            }
+        }
+
+        [UIValue("StageVisualizer")]
+        public bool StageVisualizer
+        {
+            get => conf.StageVisualizer;
+            set
+            {
+                if (value)
+                {
+                    if (conf.MeshVisualizer) conf.MeshVisualizer = false;
+                    if (conf.TileVisualizer) conf.TileVisualizer = false;
+                    if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                    if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
+                    if (conf.StripeVisualizer) conf.StripeVisualizer = false;
+                }
+
+                conf.StageVisualizer = value;
 
                 updateUI();
             }
@@ -201,6 +310,7 @@ namespace NullponSpectrum.Views
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.RainbowBugVisualizer) conf.RainbowBugVisualizer = false;
+                    if (conf.StageVisualizer) conf.StageVisualizer = false;
                 }
                 conf.RainbowVisualizer = value;
                 updateUI();
@@ -219,6 +329,7 @@ namespace NullponSpectrum.Views
                     if (conf.TileVisualizer) conf.TileVisualizer = false;
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
                     if (conf.RainbowVisualizer) conf.RainbowVisualizer = false;
+                    if (conf.StageVisualizer) conf.StageVisualizer = false;
                 }
                 conf.RainbowBugVisualizer = value;
                 updateUI();

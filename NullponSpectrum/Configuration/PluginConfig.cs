@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using IPA.Config.Stores;
 
@@ -19,17 +19,43 @@ namespace NullponSpectrum.Configuration
         public virtual bool FrameVisualizer { get; set; } = false;
         public virtual bool FrameFlowingVisualizer { get; set; } = false;
         public virtual bool LineVisualizer { get; set; } = false;
+        public virtual bool CutVisualizer { get; set; } = false;
         public virtual bool MeshVisualizer { get; set; } = false;
         public virtual bool StripeVisualizer { get; set; } = false;
+        public virtual bool StageVisualizer { get; set; } = false;
+        public virtual bool ParticleVisualizer { get; set; } = false;
+        /// <summary>
+        /// ON のときだけ LateTick でセイバー色を毎フレーム追従。OFF はシーン開始時と RefreshSaberColorsNow 呼び出し時のみ（負荷低）。
+        /// </summary>
+        public virtual bool RealtimeSaberColorUpdates { get; set; } = false;
         public virtual bool SphereVisualizer { get; set; } = false;
         public virtual bool UneUneVisualizer { get; set; } = false;
         public virtual bool LinebowVisualizer { get; set; } = false;
         public virtual bool BoxVisualizer { get; set; } = false;
         public virtual bool RainbowBugVisualizer { get; set; } = false;
         public virtual bool RainbowVisualizer { get; set; } = false;
-        public virtual bool CutVisualizer { get; set; } = false;
 
         public virtual bool TileVisualizer { get; set; } = false;
+
+        /// <summary>スペクトラム（AudioSpectrum）を使う床ビジュアライザが 1 つでも ON か。</summary>
+        public bool HasAnyActiveSpectrumFloorVisualizer()
+        {
+            return this.CubeVisualizer
+                || this.FrameVisualizer
+                || this.FrameFlowingVisualizer
+                || this.BoxVisualizer
+                || this.TileVisualizer
+                || this.LinebowVisualizer
+                || this.MeshVisualizer
+                || this.LineVisualizer
+                || this.StripeVisualizer
+                || this.SphereVisualizer
+                || this.StageVisualizer
+                || this.ParticleVisualizer
+                || this.UneUneVisualizer
+                || this.RainbowVisualizer
+                || this.RainbowBugVisualizer;
+        }
 
         public event Action<PluginConfig> OnReloaded;
 
