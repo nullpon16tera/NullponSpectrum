@@ -1,3 +1,4 @@
+using NullponSpectrum.Controllers;
 using NullponSpectrum.Configuration;
 using BeatSaberMarkupLanguage;
 using BeatSaberMarkupLanguage.Attributes;
@@ -73,42 +74,68 @@ namespace NullponSpectrum.Views
         public bool Enable
         {
             get => conf.Enable;
-            set => conf.Enable = value;
+            set
+            {
+                if (conf.Enable == value) return;
+                conf.Enable = value;
+            }
         }
 
         [UIValue("realtimeSaberColorUpdates")]
         public bool RealtimeSaberColorUpdates
         {
             get => conf.RealtimeSaberColorUpdates;
-            set => conf.RealtimeSaberColorUpdates = value;
+            set
+            {
+                if (conf.RealtimeSaberColorUpdates == value) return;
+                conf.RealtimeSaberColorUpdates = value;
+            }
         }
 
         [UIValue("isFloorHeight")]
         public bool isFloorHeight
         {
             get => conf.isFloorHeight;
-            set => conf.isFloorHeight = value;
+            set
+            {
+                if (conf.isFloorHeight == value) return;
+                conf.isFloorHeight = value;
+                MenuFloorRootController.ApplyMenuFloorHeightFromConfig();
+            }
         }
 
         [UIValue("floorHeight")]
         public float floorHeight
         {
             get => conf.floorHeight;
-            set => conf.floorHeight = value;
+            set
+            {
+                if (Mathf.Approximately(conf.floorHeight, value)) return;
+                conf.floorHeight = value;
+                MenuFloorRootController.ApplyMenuFloorHeightFromConfig();
+            }
         }
 
         [UIValue("enableFloorObject")]
         public bool enableFloorObject
         {
             get => conf.enableFloorObject;
-            set => conf.enableFloorObject = value;
+            set
+            {
+                if (conf.enableFloorObject == value) return;
+                conf.enableFloorObject = value;
+            }
         }
 
         [UIValue("enableMerihari")]
         public bool enableMerihari
         {
             get => conf.enableMerihari;
-            set => conf.enableMerihari = value;
+            set
+            {
+                if (conf.enableMerihari == value) return;
+                conf.enableMerihari = value;
+            }
         }
 
         [UIValue("listOptions")]
@@ -118,7 +145,11 @@ namespace NullponSpectrum.Views
         public int listChoice
         {
             get => conf.listChoice;
-            set => conf.listChoice = value;
+            set
+            {
+                if (conf.listChoice == value) return;
+                conf.listChoice = value;
+            }
         }
 
 
@@ -127,28 +158,44 @@ namespace NullponSpectrum.Views
         public bool CubeVisualizer
         {
             get => conf.CubeVisualizer;
-            set => conf.CubeVisualizer = value;
+            set
+            {
+                if (conf.CubeVisualizer == value) return;
+                conf.CubeVisualizer = value;
+            }
         }
 
         [UIValue("FrameVisualizer")]
         public bool FrameVisualizer
         {
             get => conf.FrameVisualizer;
-            set => conf.FrameVisualizer = value;
+            set
+            {
+                if (conf.FrameVisualizer == value) return;
+                conf.FrameVisualizer = value;
+            }
         }
 
         [UIValue("FrameFlowingVisualizer")]
         public bool FrameFlowingVisualizer
         {
             get => conf.FrameFlowingVisualizer;
-            set => conf.FrameFlowingVisualizer = value;
+            set
+            {
+                if (conf.FrameFlowingVisualizer == value) return;
+                conf.FrameFlowingVisualizer = value;
+            }
         }
 
         [UIValue("LineVisualizer")]
         public bool LineVisualizer
         {
             get => conf.LineVisualizer;
-            set => conf.LineVisualizer = value;
+            set
+            {
+                if (conf.LineVisualizer == value) return;
+                conf.LineVisualizer = value;
+            }
         }
 
         [UIValue("ParticleVisualizer")]
@@ -157,6 +204,7 @@ namespace NullponSpectrum.Views
             get => conf.ParticleVisualizer;
             set
             {
+                if (conf.ParticleVisualizer == value) return;
                 if (value)
                 {
                     if (conf.CutVisualizer) conf.CutVisualizer = false;
@@ -174,6 +222,7 @@ namespace NullponSpectrum.Views
             get => conf.CutVisualizer;
             set
             {
+                if (conf.CutVisualizer == value) return;
                 if (value)
                 {
                     if (conf.ParticleVisualizer) conf.ParticleVisualizer = false;
@@ -191,6 +240,7 @@ namespace NullponSpectrum.Views
             get => conf.TileVisualizer;
             set
             {
+                if (conf.TileVisualizer == value) return;
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
@@ -212,6 +262,7 @@ namespace NullponSpectrum.Views
             get => conf.MeshVisualizer;
             set
             {
+                if (conf.MeshVisualizer == value) return;
                 if (value)
                 {
                     if (conf.StripeVisualizer) conf.StripeVisualizer = false;
@@ -233,6 +284,7 @@ namespace NullponSpectrum.Views
             get => conf.StripeVisualizer;
             set
             {
+                if (conf.StripeVisualizer == value) return;
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
@@ -254,6 +306,7 @@ namespace NullponSpectrum.Views
             get => conf.StageVisualizer;
             set
             {
+                if (conf.StageVisualizer == value) return;
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
@@ -269,32 +322,59 @@ namespace NullponSpectrum.Views
             }
         }
 
+        [UIValue("MenuStageVisualizer")]
+        public bool MenuStageVisualizer
+        {
+            get => conf.MenuStageVisualizer;
+            set
+            {
+                if (conf.MenuStageVisualizer == value) return;
+                conf.MenuStageVisualizer = value;
+            }
+        }
+
         [UIValue("SphereVisualizer")]
         public bool SphereVisualizer
         {
             get => conf.SphereVisualizer;
-            set => conf.SphereVisualizer = value;
+            set
+            {
+                if (conf.SphereVisualizer == value) return;
+                conf.SphereVisualizer = value;
+            }
         }
 
         [UIValue("UneUneVisualizer")]
         public bool UneUneVisualizer
         {
             get => conf.UneUneVisualizer;
-            set => conf.UneUneVisualizer = value;
+            set
+            {
+                if (conf.UneUneVisualizer == value) return;
+                conf.UneUneVisualizer = value;
+            }
         }
 
         [UIValue("LinebowVisualizer")]
         public bool LinebowVisualizer
         {
             get => conf.LinebowVisualizer;
-            set => conf.LinebowVisualizer = value;
+            set
+            {
+                if (conf.LinebowVisualizer == value) return;
+                conf.LinebowVisualizer = value;
+            }
         }
 
         [UIValue("BoxVisualizer")]
         public bool BoxVisualizer
         {
             get => conf.BoxVisualizer;
-            set => conf.BoxVisualizer = value;
+            set
+            {
+                if (conf.BoxVisualizer == value) return;
+                conf.BoxVisualizer = value;
+            }
         }
 
 
@@ -304,6 +384,7 @@ namespace NullponSpectrum.Views
             get => conf.RainbowVisualizer;
             set
             {
+                if (conf.RainbowVisualizer == value) return;
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;
@@ -323,6 +404,7 @@ namespace NullponSpectrum.Views
             get => conf.RainbowBugVisualizer;
             set
             {
+                if (conf.RainbowBugVisualizer == value) return;
                 if (value)
                 {
                     if (conf.MeshVisualizer) conf.MeshVisualizer = false;

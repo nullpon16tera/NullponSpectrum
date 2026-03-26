@@ -32,7 +32,16 @@ namespace NullponSpectrum.Utilities
             PlayersPlace = GameObject.Find("Environment/PlayersPlace");
 
             var conf = PluginConfig.Instance;
-            if (conf.LineVisualizer || conf.MeshVisualizer || conf.StripeVisualizer || conf.TileVisualizer || conf.RainbowVisualizer)
+            if (
+                conf.LineVisualizer
+                || conf.MeshVisualizer
+                || conf.StripeVisualizer
+                || conf.TileVisualizer
+                || conf.RainbowVisualizer
+                || conf.RainbowBugVisualizer
+                || conf.StageVisualizer
+                || conf.FrameVisualizer
+                || conf.FrameFlowingVisualizer)
             {
                 IsFloorEnable = true;
             }

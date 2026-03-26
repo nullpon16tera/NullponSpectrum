@@ -186,6 +186,8 @@
     <Compile Include="Controllers\FloorViewController.cs" />
     <Compile Include="Controllers\FrameFlowingVisualizerController.cs" />
     <Compile Include="Controllers\LineVisualizerController.cs" />
+    <Compile Include="Controllers\MenuFloorRootController.cs" />
+    <Compile Include="Controllers\MenuStageVisualizerContoller.cs" />
     <Compile Include="Controllers\ParticleVisualizerController.cs" />
     <Compile Include="Controllers\RainbowVisualizerController.cs" />
     <Compile Include="Controllers\RainbowBugVisualizerController.cs" />
@@ -206,14 +208,17 @@
     <Compile Include="Utilities\FloorAdjustorUtil.cs" />
     <Compile Include="Utilities\XrPerfHelper.cs" />
     <Compile Include="Utilities\VisualizerUtil.cs" />
+    <Compile Include="Utilities\ShaderBundleLoader.cs" />
     <Compile Include="Views\SettingTabViewController.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="manifest.json" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\CustomGlowingShader.shader" />
+    <None Include="Assets\Shaders\StageProceduralSparks.shader" />
+    <None Include="Assets\Shaders\StageSpectrumFloor.shader" />
     <None Include="Directory.Build.props" Condition="Exists('Directory.Build.props')" />
+    <EmbeddedResource Include="EmbeddedAssets\nullponspectrum_shaders" />
     <None Include="NullponSpectrum.csproj.user" Condition="Exists('NullponSpectrum.csproj.user')" />
     <EmbeddedResource Include="Views\SettingTabViewController.bsml">
       <DependentUpon>SettingTabViewController.cs</DependentUpon>

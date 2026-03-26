@@ -32,6 +32,8 @@ namespace NullponSpectrum.Controllers
         private const int CutBakeMaxPerTier = 40;
         private const int EmitCutParticlesPerFrameBudget = 22;
         private const int CutEmitPendingQueueMax = 96;
+        /// <summary>同じ色（左/右）で連続カットしたときのキュー膨張を抑える。前回 Emit 登録からの最短秒。</summary>
+        private const float CutBurstMinIntervalPerColorSeconds = 0.055f;
 
         private struct CutBakedEmit
         {
@@ -62,7 +64,12 @@ namespace NullponSpectrum.Controllers
 
         private CutBakedEmit[][] _cutTierBaked;
         private int[] _cutTierEmitCounts;
-        private readonly List<PendingCutBurst> _pendingCutBursts = new List<PendingCutBurst>();
+        /// <summary>未 Emit バースト列。容量は <see cref="CutEmitPendingQueueMax"/> に合わせ再割り当てを抑える。</summary>
+        private readonly List<PendingCutBurst> _pendingCutBursts = new List<PendingCutBurst>(CutEmitPendingQueueMax);
+        private int _cutBurstLastFrameColorA = -1;
+        private int _cutBurstLastFrameColorB = -1;
+        private float _cutBurstNextAllowedTimeColorA = -999f;
+        private float _cutBurstNextAllowedTimeColorB = -999f;
 
         [Inject]
         public void Constructor(BeatmapObjectManager beatmapObjectManager, VisualizerUtil visualizerUtil)
@@ -99,7 +106,24 @@ namespace NullponSpectrum.Controllers
                 return;
             }
 
+            this.StopIdleCutParticlesIfNeeded();
             this.DrainCutEmitBudget();
+        }
+
+        /// <summary>生存粒が無く再生中だけ止め、アイドル時のシミュ負荷を抑える（Emit 直前に Play する）。</summary>
+        private void StopIdleCutParticlesIfNeeded()
+        {
+            if (this._particles == null || !this._particles.isPlaying)
+            {
+                return;
+            }
+
+            if (this._particles.particleCount > 0)
+            {
+                return;
+            }
+
+            this._particles.Stop(withChildren: false, ParticleSystemStopBehavior.StopEmitting);
         }
 
         private void OnNoteWasCut(NoteController noteController, in NoteCutInfo noteCutInfo)
@@ -128,7 +152,54 @@ namespace NullponSpectrum.Controllers
             float okMul = noteCutInfo.allIsOK ? 1f : 0.62f;
             float hitIntensity = Mathf.Clamp01(0.35f + 0.65f * speedNorm) * okMul;
             int tier = this.SelectCutTier(hitIntensity);
+            if (!this.ShouldEnqueueCutBurstForColor(blockData.colorType))
+            {
+                return;
+            }
+
             this.EnqueueCutBurst(tier, blockData.colorType);
+        }
+
+        /// <summary>左・右それぞれ「そのフレームは1ノーツ分」「最短間隔内は追加しない」で負荷を抑える。</summary>
+        private bool ShouldEnqueueCutBurstForColor(ColorType colorType)
+        {
+            int frame = Time.frameCount;
+            float t = Time.time;
+            if (colorType == ColorType.ColorA)
+            {
+                if (this._cutBurstLastFrameColorA == frame)
+                {
+                    return false;
+                }
+
+                if (t < this._cutBurstNextAllowedTimeColorA)
+                {
+                    return false;
+                }
+
+                this._cutBurstLastFrameColorA = frame;
+                this._cutBurstNextAllowedTimeColorA = t + CutBurstMinIntervalPerColorSeconds;
+                return true;
+            }
+
+            if (colorType == ColorType.ColorB)
+            {
+                if (this._cutBurstLastFrameColorB == frame)
+                {
+                    return false;
+                }
+
+                if (t < this._cutBurstNextAllowedTimeColorB)
+                {
+                    return false;
+                }
+
+                this._cutBurstLastFrameColorB = frame;
+                this._cutBurstNextAllowedTimeColorB = t + CutBurstMinIntervalPerColorSeconds;
+                return true;
+            }
+
+            return true;
         }
 
         private int SelectCutTier(float hitIntensity)
@@ -226,6 +297,8 @@ namespace NullponSpectrum.Controllers
                 this._particles.Play();
             }
 
+            ParticleSystem.EmitParams emitParams = default;
+            emitParams.applyShapeToPosition = false;
             for (int i = 0; i < count; i++)
             {
                 CutBakedEmit e = this._cutTierBaked[tier][offset + i];
@@ -234,15 +307,11 @@ namespace NullponSpectrum.Controllers
 
                 float px = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
                 float pz = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
-                var emitParams = new ParticleSystem.EmitParams
-                {
-                    position = new Vector3(px, EmitY, pz),
-                    startLifetime = e.StartLifetime,
-                    startSize = e.StartSize,
-                    velocity = e.Velocity,
-                    startColor = c,
-                    applyShapeToPosition = false
-                };
+                emitParams.position = new Vector3(px, EmitY, pz);
+                emitParams.startLifetime = e.StartLifetime;
+                emitParams.startSize = e.StartSize;
+                emitParams.velocity = e.Velocity;
+                emitParams.startColor = c;
 
                 this._particles.Emit(emitParams, 1);
             }

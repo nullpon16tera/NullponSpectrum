@@ -57,6 +57,8 @@ namespace NullponSpectrum.Controllers
         private const int EmitParticlesPerFrameBudget = 28;
         /// <summary>未処理 Emit のキュー上限（溜まりすぎ防止）</summary>
         private const int EmitPendingQueueMax = 220;
+        /// <summary>軽量時、ドラム検出〜キュー投入を N フレームに 1 回にする（平均・跳ねの履歴は毎回更新）。</summary>
+        private const int PlaneDrumEmitCheckFrameStride = 3;
         /// <summary>床パーティクルを音圧 3 段階に分け Initialize でベイク（更新時は Random なし）。</summary>
         private const int ParticleTierCount = 3;
         private const int ParticleBakeMaxPerTier = 140;
@@ -83,7 +85,8 @@ namespace NullponSpectrum.Controllers
         /// <summary>ホタル風の柔らかい発光用（中心明るく外周フェード）。実行時生成し Dispose で破棄。</summary>
         private Texture2D _particleGlowTexture;
         private float _prevDrumAverage;
-        private readonly List<PendingPlaneBurst> _pendingPlaneBursts = new List<PendingPlaneBurst>();
+        /// <summary>未 Emit バースト列。容量は <see cref="EmitPendingQueueMax"/> に合わせ再割り当てを抑える。</summary>
+        private readonly List<PendingPlaneBurst> _pendingPlaneBursts = new List<PendingPlaneBurst>(EmitPendingQueueMax);
         private PlaneBakedEmit[][] _planeTierBaked;
         private int[] _planeTierEmitCounts;
         private static readonly float[] ParticleTierPintRepr = { 0.28f, 0.58f, 0.96f };
@@ -110,6 +113,7 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
+
             this.UpdateFromSpectrum(obj);
         }
 
@@ -121,8 +125,25 @@ namespace NullponSpectrum.Controllers
             }
 
             // ドラムでキューに積み、毎フレームは上限数だけ Emit（1 フレームに集中させない）
+            this.StopIdlePlaneParticlesIfNeeded();
             this.UpdateDrumPlaneParticles(this._audioSpectrum.PeakLevels);
             this.DrainParticleEmitBudget();
+        }
+
+        /// <summary>生存粒が無く再生中だけ止め、アイドル時のシミュ負荷を抑える（Emit 直前に Play する）。</summary>
+        private void StopIdlePlaneParticlesIfNeeded()
+        {
+            if (this._particles == null || !this._particles.isPlaying)
+            {
+                return;
+            }
+
+            if (this._particles.particleCount > 0)
+            {
+                return;
+            }
+
+            this._particles.Stop(withChildren: false, ParticleSystemStopBehavior.StopEmitting);
         }
 
         /// <summary>指定ドラム帯の平均と「前フレームからの跳ね」で Emit の有無・粒数を決める（Stage 火花と同系）。</summary>
@@ -152,6 +173,12 @@ namespace NullponSpectrum.Controllers
             // 1 フレーム前との差＝アタック・立ち上がり
             float jump = drumAverage - this._prevDrumAverage;
             this._prevDrumAverage = drumAverage;
+
+            if (XrPerfHelper.ShouldReduceVisualizerCost()
+                && (Time.frameCount % PlaneDrumEmitCheckFrameStride) != 0)
+            {
+                return;
+            }
 
             if (drumAverage < MinDrumAverage || jump < DrumJumpMin)
             {
@@ -254,6 +281,13 @@ namespace NullponSpectrum.Controllers
             Color colorRight = Color.HSVToRGB(rightHsv[0], rightHsv[1], 1f);
             float pint = Mathf.Clamp01(ParticleTierPintRepr[tier]);
 
+            if (!this._particles.isPlaying)
+            {
+                this._particles.Play();
+            }
+
+            ParticleSystem.EmitParams emitParams = default;
+            emitParams.applyShapeToPosition = false;
             for (int i = 0; i < count; i++)
             {
                 PlaneBakedEmit e = this._planeTierBaked[tier][offset + i];
@@ -262,15 +296,11 @@ namespace NullponSpectrum.Controllers
 
                 float px = UnityEngine.Random.Range(-RectHalfWidth, RectHalfWidth);
                 float pz = UnityEngine.Random.Range(-RectHalfDepth, RectHalfDepth);
-                var emitParams = new ParticleSystem.EmitParams
-                {
-                    position = new Vector3(px, EmitY, pz),
-                    startLifetime = e.StartLifetime,
-                    startSize = e.StartSize,
-                    velocity = e.Velocity,
-                    startColor = c,
-                    applyShapeToPosition = false
-                };
+                emitParams.position = new Vector3(px, EmitY, pz);
+                emitParams.startLifetime = e.StartLifetime;
+                emitParams.startSize = e.StartSize;
+                emitParams.velocity = e.Velocity;
+                emitParams.startColor = c;
 
                 this._particles.Emit(emitParams, 1);
             }

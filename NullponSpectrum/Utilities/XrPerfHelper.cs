@@ -12,10 +12,10 @@ namespace NullponSpectrum.Utilities
             return true;
         }
 
-        /// <summary>ステージメッシュの頂点色を GPU に送るのは 3 フレームに 1 回。</summary>
+        /// <summary>ステージ放射メッシュの頂点色アップロード間引き（本数削減に加え CPU/GPU 転送も抑える）。</summary>
         public static bool ShouldUploadStageMeshColorsThisFrame()
         {
-            return (Time.frameCount % 3) == 0;
+            return (Time.frameCount % 4) == 0;
         }
     }
 }

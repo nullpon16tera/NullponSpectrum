@@ -1,7 +1,8 @@
-﻿using IPA;
+using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
 using NullponSpectrum.Installers;
+using NullponSpectrum.Utilities;
 using SiraUtil.Zenject;
 using System.Reflection;
 using IPALogger = IPA.Logging.Logger;
@@ -27,6 +28,7 @@ namespace NullponSpectrum
             Log.Info("NullponSpectrum initialized.");
             Configuration.PluginConfig.Instance = conf.Generated<Configuration.PluginConfig>();
             Log.Debug("Config loaded");
+            ShaderBundleLoader.TryLoad(Log);
             zenjector.Install<NullponSpectrumGameInstaller>(Location.Player);
             zenjector.Install<NullponSpectrumMenuInstaller>(Location.Menu);
         }
@@ -47,6 +49,10 @@ namespace NullponSpectrum
         public void OnApplicationStart() => Log.Debug("OnApplicationStart");
 
         [OnExit]
-        public void OnApplicationQuit() => Log.Debug("OnApplicationQuit");
+        public void OnApplicationQuit()
+        {
+            ShaderBundleLoader.UnloadQuietly();
+            Log.Debug("OnApplicationQuit");
+        }
     }
 }

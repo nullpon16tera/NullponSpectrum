@@ -31,6 +31,11 @@ namespace NullponSpectrum.Utilities
 
         public static Shader GetShader(string name)
         {
+            if (ShaderBundleLoader.TryGetShaderFromBundle(name, out Shader fromBundle))
+            {
+                return fromBundle;
+            }
+
             var shaderes = Resources.FindObjectsOfTypeAll<Shader>();
             Shader shader = shaderes.FirstOrDefault(x => x.name == name);
             return shader;
@@ -56,10 +61,18 @@ namespace NullponSpectrum.Utilities
             return rightHSV;
         }
 
-        /// <summary>プレイ中の左右セイバー色を反映（Stage のスペクトラム直前用）。</summary>
+        /// <summary>プレイ中の左右セイバー色を反映（Initialize やセイバー差し替え直後など、列挙のフルスキャンが必要なとき）。</summary>
         public void RefreshSaberColorsNow()
         {
             this.RefreshSaberColorsFromGame(forceSaberRescan: true);
+        }
+
+        /// <summary>
+        /// 床スペクトラムの更新フレーム用。Saber の列挙は間引きキャッシュを使い、毎回 FindObjectsOfTypeAll しない。
+        /// </summary>
+        public void RefreshSaberColorsForSpectrumFrame()
+        {
+            this.RefreshSaberColorsFromGame(forceSaberRescan: false);
         }
 
         public static IAudioTimeSource GetAudioTimeSource()

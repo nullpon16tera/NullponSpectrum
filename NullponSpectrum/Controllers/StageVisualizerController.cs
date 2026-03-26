@@ -17,85 +17,102 @@ namespace NullponSpectrum.Controllers
         /// 各バンド列の奥行き先頭（m=0）の四角の中心が乗る円の半径（XZ）。メッシュはこの値から径方向に伸ばすので、円の大きさはここを変える。
         /// </summary>
         private const float CircleRadius = 0.44f;
-        /// <summary>1 バンドあたり奥行（径方向）に並べる四角の個数</summary>
-        private const int SquaresPerBand = 24;
+        /// <summary>
+        /// 1 バンドあたり径方向の四角数。パーティクル無しの床メッシュは頂点数＝列×本数×4 で重いので 24→12 に削減。
+        /// 手続き型火花は別オブジェクトの 4 頂点クワッドのまま。
+        /// </summary>
+        private const int SquaresPerBand = 12;
         /// <summary>各四角の半辺長（接線方向・径方向とも同じで正方形）</summary>
-        private const float SquareHalf = 0.008f;
-        /// <summary>隣り合う四角のあいだの径方向の余白（面と面の間）</summary>
-        private const float GapRadial = 0.007f;
+        private const float SquareHalf = 0.016f;
+        /// <summary>
+        /// バンド列の「中心から外へ」に並ぶ四角同士の、径方向の隙間（面と面）。円周方向の隙間ではない。
+        /// 隣セルの中心間隔は <see cref="RadialPitch"/> ＝ 2×<see cref="SquareHalf"/> ＋この値なので、この値を下げると隙間がそのまま縮む。
+        /// </summary>
+        private const float GapRadial = 0.014f;
 
+        /// <summary>
+        /// 径方向の中心間隔（m と m+1）。旧実装は 24 段相当の最外周に合わせて約 (23/11) 倍していたため、
+        /// <see cref="GapRadial"/> を変えても隙間がほとんど縮まなかった。今は 2×四角＋隙間の素直なピッチ。
+        /// </summary>
         private static float RadialPitch => SquareHalf * 2f + GapRadial;
 
         /// <summary>
-        /// 火花用ドラム帯の PeakLevels 先頭 index。5〜11 帯は中心周波数おおよそ 63〜250Hz（キックの胴・スネア下寄り）。
-        /// この帯の平均が前フレームから跳ねたとき Emit。
+        /// Game 手続き型火花: キックは「平均より瞬間が跳ねる」（Levels−MeanLevels）＋「1 フレームの単帯跳ね」の両方でゲート。
+        /// 閾値: StageSparkTransientOverMeanMin / StageSparkMaxBandJumpMin。キック代理 Peak index 9、補助フラックス 7〜11。
         /// </summary>
-        private const int SparkDrumBandIndexFirst = 5;
-        /// <summary>ドラム帯域平均を取るときの PeakLevels の終端 index（含む）</summary>
+        private const float StageSparkTransientOverMeanMin = 0.028f;
+        private const float StageSparkMaxBandJumpMin = 0.016f;
+        private const int StageSparkKickProxyBandIndex = 9;
+        private const float StageSparkKickBand8PeakRiseMin = 0.019f;
+        private const float StageSparkKickBand8PeakMin = 0.044f;
+        /// <summary>この未満までキック代理帯の PeakLevels が落ちたら再武装。</summary>
+        private const float StageSparkKickPeakRearmBelow = 0.034f;
+        private const int SparkDrumBandIndexFirst = 7;
         private const int SparkDrumBandIndexLast = 11;
-        /// <summary>帯域平均がこの値未満なら火花なし（小さいノイズでの誤爆を抑える）</summary>
-        private const float SparkMinDrumAverage = 0.034f;
-        /// <summary>前フレーム比の上がり幅（jump）がこの値未満なら火花なし（ゆるい変化では出さない）</summary>
-        private const float SparkDrumJumpMin = 0.014f;
-        /// <summary>1 バーストあたりの Emit 数の下限</summary>
+        private const float StageSparkPercussiveMinBandEnergy = 0.038f;
+        private const float StageSparkPercussiveFluxMin = 0.024f;
+        private const float StageSparkPercussiveFluxOverAvgMin = 0.55f;
+        private const float StageSparkPercussiveCrestMin = 1.45f;
+        private const float StageSparkBurstMinIntervalSeconds = 0.24f;
+        /// <summary>低/中/高ティアの境目。Menu より Stage だけ「高」が届きやすいよう MidHigh を下げる。</summary>
+        private const float StageSparkTierBoundaryLowMid = 0.42f;
+        /// <summary>高ティアは tierMetric がこの値以上。Menu の 0.58 より低くして強めのオンセットで高が選ばれやすくする。</summary>
+        private const float StageSparkTierBoundaryMidHigh = 0.52f;
+        /// <summary>hitIntensity を tier 用に持ち上げ（Menu 0.86 より大きめ）。</summary>
+        private const float StageSparkTierSelectScale = 0.92f;
+        /// <summary>1 に近いほど Pow で潰れず高ティアに届きやすい（Menu は 1.12）。</summary>
+        private const float StageSparkTierCurveExponent = 1.02f;
+        private const float StageSparkTierFluxIntensityMul = 1f;
+        private const float StageSparkTierFluxIntensityCap = 0.28f;
+        /// <summary>hitIntensity に入れる「平均レベル」側の係数（大きいほど静かなドラムでも強く反応）</summary>
+        private const float SparkIntensityFromAvg = 3.85f;
+        /// <summary>hitIntensity に入れる「前フレームからの跳ね」側の係数（大きいほどアタック感で強く反応）</summary>
+        private const float SparkIntensityFromJump = 7.8f;
+
+        /// <summary>1 バーストあたりの Emit 数の下限 — Menu ステージ火花と同一。</summary>
         private const int SparkEmitMin = 16;
         /// <summary>1 バーストあたりの Emit 数の上限</summary>
         private const int SparkEmitMax = 74;
-        /// <summary>上方向初速の上限を決めるときの「目標上昇量」（m 相当。1 Unity unit ≒ 1m 想定）</summary>
         private const float SparkMaxRiseMeters = 0.6f;
-        /// <summary>Emit 時 startSize の下限（弱い粒の見た目の大きさ）</summary>
         private const float SparkParticleSizeMin = 0.011f;
-        /// <summary>Emit 時 startSize の上限（強い粒の見た目の大きさ）</summary>
         private const float SparkParticleSizeMax = 0.16f;
-        /// <summary>パーティクルが消えるまでの時間（秒）の下限（Main のデフォルト帯。実 Emit は EmitParams で上書き）</summary>
+        private const float SparkParticleSizeMidTierMaxMul = 0.78f;
+        private const float SparkParticleSizeHighTierMaxMul = 0.88f;
         private const float SparkLifetimeMin = 0.1f;
-        /// <summary>パーティクル寿命（秒）の上限</summary>
         private const float SparkLifetimeMax = 0.28f;
-        /// <summary>上方向キャップ計算用の等価重力（g × main.gravityModifier）。軌道のざっくり見積りに使う</summary>
+        private const float StageSparkBakeLifetimeMin = 0.15f;
+        private const float StageSparkBakeLifetimeMax = 0.42f;
+        private const float StageSparkBakeLifetimeMidTierExtraMul = 1.14f;
+        private const float StageSparkBakeLifetimeHighTierExtraMul = 1.32f;
         private const float SparkGravityEffective = 9.81f * 0.35f;
-        /// <summary>hitIntensity に入れる「平均レベル」側の係数（大きいほど静かなドラムでも強く反応）</summary>
-        private const float SparkIntensityFromAvg = 3f;
-        /// <summary>hitIntensity に入れる「前フレームからの跳ね」側の係数（大きいほどアタック感で強く反応）</summary>
-        private const float SparkIntensityFromJump = 6f;
-        /// <summary>弱いヒット時のバースト粒数倍率（1 = ベース count のまま）</summary>
         private const float SparkBurstCountScaleMin = 1f;
-        /// <summary>強いヒット時のバースト粒数倍率</summary>
         private const float SparkBurstCountScaleMax = 2.25f;
-        /// <summary>弱いヒット時の水平広がり（XZ 初速スケール）の倍率</summary>
         private const float SparkBurstSpreadMulMin = 0.48f;
-        /// <summary>強いヒット時の水平広がりの倍率</summary>
         private const float SparkBurstSpreadMulMax = 1.84f;
-        /// <summary>弱いヒット時、上方向初速ブレンドの下限（小さいほど跳ねにくい）</summary>
         private const float SparkBurstUpBlendMin = 1.25f;
-        /// <summary>弱いヒット時、発生リング半径の倍率（ステージ円に対する割合）</summary>
         private const float SparkBurstShapeRadiusMulMin = 0.64f;
-        /// <summary>強いヒット時、発生リング半径の倍率</summary>
         private const float SparkBurstShapeRadiusMulMax = 1.84f;
-        /// <summary>弱いヒット時の寿命倍率（短め）</summary>
         private const float SparkBurstLifeMulMin = 0.9f;
-        /// <summary>強いヒット時の寿命倍率（やや長め）</summary>
         private const float SparkBurstLifeMulMax = 1.06f;
-        /// <summary>火花バーストを音圧で 3 段階に分け、Initialize でベイクする（更新時は Random・再計算なし）。</summary>
         private const int SparkTierCount = 3;
-        /// <summary>各ティアの最大 Emit 数（SparkEmitMax × バースト倍率の余裕）</summary>
         private const int SparkBakeMaxPerTier = 72;
 
-        /// <summary>1 粒分、Emit 直前まで固定（位置・速度・寿命・サイズ）。</summary>
-        private struct SparkBakedEmit
-        {
-            public Vector3 Position;
-            public Vector3 Velocity;
-            public float StartLifetime;
-            public float StartSize;
-        }
-
         private GameObject _root;
-        /// <summary>頂点色のみ毎回更新。メッシュ本体は Build 時に確定した参照のまま。</summary>
+        /// <summary>頂点色のみ毎回更新（Sprites/Default フォールバック時）。シェーダー駆動時は null。</summary>
         private Mesh _mesh;
         private MeshFilter _meshFilter;
         private MeshRenderer _meshRenderer;
         private Material _material;
         private Color[] _colors;
+        /// <summary>Custom/StageSpectrumFloor が読めたとき true。ピークは GPU 定数、頂点色は使わない。</summary>
+        private bool _stageMeshShaderActive;
+        /// <summary>Material.SetFloatArray 用（31 バンド + 余裕）。</summary>
+        private float[] _peakUploadBuffer;
+        /// <summary>床メッシュ頂点色: 列ごとの前回 Peak。差分がなければループをスキップして CPU/GPU 負荷を下げる。</summary>
+        private float[] _stageMeshPrevColumnPeak;
+        private readonly float[] _stageMeshCacheLeftHsv = new float[3];
+        private readonly float[] _stageMeshCacheRightHsv = new float[3];
+        private bool _stageMeshHsvPrimed;
         /// <summary>AudioSpectrum のバンド数（例: ThirtyOneBand なら 31）</summary>
         private int _spectrumBandCount;
         /// <summary>左半円に spectrum 本 + 右半円に spectrum 本</summary>
@@ -103,9 +120,25 @@ namespace NullponSpectrum.Controllers
         private bool _built;
         private ParticleSystem _stageSparks;
         private Material _sparkMaterial;
-        private float _sparkPrevDrumAverage;
         private SparkBakedEmit[][] _sparkTierBaked;
         private int[] _sparkTierEmitCounts;
+        /// <summary>ドラム帯オンセット用: 前フレームの Levels（瞬時スペクトル）。PeakLevels とは別配列で保持する。</summary>
+        private float[] _stageSparkPrevDrumBandInstant;
+        private bool _stageSparkPrevDrumInstantPrimed;
+        /// <summary>キック代理帯の前フレーム PeakLevels。</summary>
+        private float _stageSparkPrevKickPeakBand8;
+        /// <summary>キック代理で一度発火したらピークが下がるまで再武装しない（連弾抑制）。</summary>
+        private bool _stageSparkKickBand8Armed = true;
+        private float _stageSparkNextEmitTime;
+
+        /// <summary>1 粒分、Emit 直前まで固定（位置・速度・寿命・サイズ）。Menu と同一形。</summary>
+        private struct SparkBakedEmit
+        {
+            public Vector3 Position;
+            public Vector3 Velocity;
+            public float StartLifetime;
+            public float StartSize;
+        }
 
         private void OnUpdatedRawSpectrums(AudioSpectrum obj)
         {
@@ -117,120 +150,257 @@ namespace NullponSpectrum.Controllers
             {
                 return;
             }
+
             this.UpdateAudioSpectrums(obj);
         }
 
         private void UpdateAudioSpectrums(AudioSpectrum audio)
         {
-            if (!audio || !_built || _mesh == null || _colors == null)
+            if (!audio || !_built || _mesh == null)
+            {
+                return;
+            }
+
+            if (!this._stageMeshShaderActive && this._colors == null)
             {
                 return;
             }
 
             var peaks = this._audioSpectrum.PeakLevels;
 
-            // 軽量モード時は頂点色 GPU アップロードを間引き（オブジェクト生成は Initialize のみでここでは行わない）
+            // 軽量モード時は頂点色 / シェーダー定数の更新を間引き（オブジェクト生成は Initialize のみでここでは行わない）
             bool uploadMeshColors = XrPerfHelper.ShouldUploadStageMeshColorsThisFrame();
             if (uploadMeshColors)
             {
-                this._visualizerUtil.RefreshSaberColorsNow();
+                this._visualizerUtil.RefreshSaberColorsForSpectrumFrame();
 
                 float[] leftHsv = VisualizerUtil.GetLeftSaberHSV();
                 float[] rightHsv = VisualizerUtil.GetRightSaberHSV();
 
-                for (int col = 0; col < _columnCount; col++)
+                bool saberOrFirst = !this._stageMeshHsvPrimed
+                    || !StageMeshApproxHsv3(this._stageMeshCacheLeftHsv, leftHsv)
+                    || !StageMeshApproxHsv3(this._stageMeshCacheRightHsv, rightHsv);
+                if (saberOrFirst)
                 {
-                    bool isRight = col >= _spectrumBandCount;
-                    int bandIdx = isRight ? col - _spectrumBandCount : col;
-                    if (bandIdx < 0 || bandIdx >= peaks.Length)
-                    {
-                        continue;
-                    }
-
-                    float[] hsv = isRight ? rightHsv : leftHsv;
-                    float peak = peaks[bandIdx];
-                    float level = DepthFillLevel(peak);
-
-                    for (int m = 0; m < SquaresPerBand; m++)
-                    {
-                        float segT = (m + 1) / (float)SquaresPerBand;
-                        bool lit = level >= segT;
-                        Color c = SquareColor(hsv, peak, lit, segT);
-                        int b = (col * SquaresPerBand + m) * 4;
-                        _colors[b] = c;
-                        _colors[b + 1] = c;
-                        _colors[b + 2] = c;
-                        _colors[b + 3] = c;
-                    }
+                    StageMeshCopyHsv3(this._stageMeshCacheLeftHsv, leftHsv);
+                    StageMeshCopyHsv3(this._stageMeshCacheRightHsv, rightHsv);
+                    this._stageMeshHsvPrimed = true;
                 }
 
-                _mesh.colors = _colors;
+                if (this._stageMeshShaderActive)
+                {
+                    this.PushStageSpectrumFloorShaderUniforms(peaks, leftHsv, rightHsv);
+                }
+                else
+                {
+                    bool anyVertexDirty = saberOrFirst;
+                    for (int col = 0; col < _columnCount; col++)
+                    {
+                        bool isRight = col >= _spectrumBandCount;
+                        int bandIdx = isRight ? col - _spectrumBandCount : col;
+                        if (bandIdx < 0 || bandIdx >= peaks.Length)
+                        {
+                            continue;
+                        }
+
+                        float peak = peaks[bandIdx];
+                        if (!saberOrFirst && StageMeshPeakNearlyEqual(this._stageMeshPrevColumnPeak[col], peak))
+                        {
+                            continue;
+                        }
+
+                        this._stageMeshPrevColumnPeak[col] = peak;
+                        anyVertexDirty = true;
+
+                        float[] hsv = isRight ? rightHsv : leftHsv;
+                        float level = DepthFillLevel(peak);
+
+                        for (int m = 0; m < SquaresPerBand; m++)
+                        {
+                            float segT = (m + 1) / (float)SquaresPerBand;
+                            bool lit = level >= segT;
+                            Color c = SquareColor(hsv, peak, lit, segT);
+                            int b = (col * SquaresPerBand + m) * 4;
+                            _colors[b] = c;
+                            _colors[b + 1] = c;
+                            _colors[b + 2] = c;
+                            _colors[b + 3] = c;
+                        }
+                    }
+
+                    if (anyVertexDirty)
+                    {
+                        _mesh.colors = _colors;
+                    }
+                }
             }
 
-            UpdateStageSparks(peaks);
+            UpdateStageSparks(
+                this._audioSpectrum.Levels,
+                this._audioSpectrum.PeakLevels,
+                this._audioSpectrum.MeanLevels);
         }
 
-        /// <summary>ドラム帯域のレベルと「前フレームからの跳ね」で火花バーストの有無・強さを決める。</summary>
-        private void UpdateStageSparks(float[] peaks)
+        /// <summary>ドラム帯のオンセットでステージ火花パーティクルを Emit（Menu と同じベイク済みバースト）。</summary>
+        /// <param name="instantBandLevels">Levels（ドラム帯フラックス・跳ね）</param>
+        /// <param name="peakBandLevels">PeakLevels（キック代理帯のピーク上昇＋再武装）</param>
+        /// <param name="meanBandLevels">MeanLevels（アタック検出 Levels−Mean）</param>
+        private void UpdateStageSparks(float[] instantBandLevels, float[] peakBandLevels, float[] meanBandLevels)
         {
-            if (_stageSparks == null || peaks == null || peaks.Length == 0)
+            if (this._stageSparks == null || instantBandLevels == null || instantBandLevels.Length == 0
+                || peakBandLevels == null || peakBandLevels.Length != instantBandLevels.Length
+                || meanBandLevels == null || meanBandLevels.Length != instantBandLevels.Length)
             {
                 return;
             }
 
-            int first = Mathf.Clamp(SparkDrumBandIndexFirst, 0, peaks.Length - 1);
-            int last = Mathf.Clamp(SparkDrumBandIndexLast, 0, peaks.Length - 1);
+            int first = Mathf.Clamp(SparkDrumBandIndexFirst, 0, instantBandLevels.Length - 1);
+            int last = Mathf.Clamp(SparkDrumBandIndexLast, 0, instantBandLevels.Length - 1);
             if (last < first)
             {
                 return;
             }
 
             int bandCount = last - first + 1;
-            float sum = 0f;
-            for (int i = first; i <= last; i++)
+            if (this._stageSparkPrevDrumBandInstant == null || this._stageSparkPrevDrumBandInstant.Length != bandCount)
             {
-                sum += peaks[i];
+                this._stageSparkPrevDrumBandInstant = new float[bandCount];
+                this._stageSparkPrevDrumInstantPrimed = false;
             }
 
-            // 指定バンドのピーク平均（キック〜スネア下寄り帯の「今の太さ」）
+            int kickIx = Mathf.Clamp(StageSparkKickProxyBandIndex, 0, instantBandLevels.Length - 1);
+            float lvKick = instantBandLevels[kickIx];
+            float peak8 = peakBandLevels[kickIx];
+
+            if (!this._stageSparkPrevDrumInstantPrimed)
+            {
+                for (int j = 0; j < bandCount; j++)
+                {
+                    this._stageSparkPrevDrumBandInstant[j] = instantBandLevels[first + j];
+                }
+
+                this._stageSparkPrevKickPeakBand8 = peak8;
+                this._stageSparkKickBand8Armed = true;
+                this._stageSparkPrevDrumInstantPrimed = true;
+                return;
+            }
+
+            if (peak8 < StageSparkKickPeakRearmBelow)
+            {
+                this._stageSparkKickBand8Armed = true;
+            }
+
+            float kickBand8PeakRise = Mathf.Max(0f, peak8 - this._stageSparkPrevKickPeakBand8);
+
+            float spectralFlux = 0f;
+            float maxDrumBandJump = 0f;
+            for (int j = 0; j < bandCount; j++)
+            {
+                float lv = instantBandLevels[first + j];
+                float rise = lv - this._stageSparkPrevDrumBandInstant[j];
+                if (rise > 0f)
+                {
+                    spectralFlux += rise;
+                }
+
+                if (rise > maxDrumBandJump)
+                {
+                    maxDrumBandJump = rise;
+                }
+            }
+
+            this._stageSparkPrevKickPeakBand8 = peak8;
+            for (int j = 0; j < bandCount; j++)
+            {
+                this._stageSparkPrevDrumBandInstant[j] = instantBandLevels[first + j];
+            }
+
+            // オンセット判定は毎フレーム行う（間引くと立ち上がりが prev 更新で潰れて遅延・取り逃しになる）。
+            // メッシュ頂点色の GPU 送信だけ XrPerfHelper で間引き済み。
+            float sum = 0f;
+            float bandMax = 0f;
+            for (int i = first; i <= last; i++)
+            {
+                float v = instantBandLevels[i];
+                sum += v;
+                if (v > bandMax)
+                {
+                    bandMax = v;
+                }
+            }
+
             float drumAverage = sum / bandCount;
 
-            // 1 フレーム前の平均からの増分（アタック・立ち上がりを検出）
-            float jump = drumAverage - _sparkPrevDrumAverage;
-            _sparkPrevDrumAverage = drumAverage;
+            float maxTransientOverMean = 0f;
+            for (int i = first; i <= last; i++)
+            {
+                float tr = instantBandLevels[i] - meanBandLevels[i];
+                if (tr > maxTransientOverMean)
+                {
+                    maxTransientOverMean = tr;
+                }
+            }
 
-            if (drumAverage < SparkMinDrumAverage || jump < SparkDrumJumpMin)
+            maxTransientOverMean = Mathf.Max(0f, maxTransientOverMean);
+            bool attackLikeKick = maxTransientOverMean >= StageSparkTransientOverMeanMin
+                && maxDrumBandJump >= StageSparkMaxBandJumpMin;
+
+            bool energyGate = drumAverage >= StageSparkPercussiveMinBandEnergy
+                || peak8 >= StageSparkKickBand8PeakMin;
+            if (!energyGate)
             {
                 return;
             }
 
-            if (!_stageSparks.isPlaying)
+            float crest = bandMax / (drumAverage + 1e-5f);
+            float fluxNeed = Mathf.Max(StageSparkPercussiveFluxMin, drumAverage * StageSparkPercussiveFluxOverAvgMin);
+            bool band8Onset = attackLikeKick
+                && this._stageSparkKickBand8Armed
+                && kickBand8PeakRise >= StageSparkKickBand8PeakRiseMin
+                && peak8 >= StageSparkKickBand8PeakMin;
+            bool drumOnset = attackLikeKick
+                && drumAverage >= StageSparkPercussiveMinBandEnergy
+                && spectralFlux >= fluxNeed
+                && crest >= StageSparkPercussiveCrestMin;
+            bool percussiveOnset = band8Onset || drumOnset;
+            if (!percussiveOnset)
             {
-                _stageSparks.Play();
+                return;
             }
 
-            // 0..1 の総合強さ → 3 ティアのどれか（粒パラメータは Initialize 時にベイク済み）
-            float hitIntensity = Mathf.Clamp01((SparkIntensityFromAvg * drumAverage) + (SparkIntensityFromJump * jump));
-            this.EmitStageSparksBurstFromBaked(this.SelectSparkTier(hitIntensity));
+            if (Time.time < this._stageSparkNextEmitTime)
+            {
+                return;
+            }
+
+            float levelForHit = Mathf.Max(drumAverage, lvKick, peak8);
+            float fluxForHit = Mathf.Max(spectralFlux, kickBand8PeakRise, maxTransientOverMean, maxDrumBandJump);
+            float hitIntensity = Mathf.Clamp01(
+                (SparkIntensityFromAvg * levelForHit)
+                + (SparkIntensityFromJump * Mathf.Min(fluxForHit * StageSparkTierFluxIntensityMul, StageSparkTierFluxIntensityCap)));
+            if (XrPerfHelper.ShouldReduceVisualizerCost())
+            {
+                hitIntensity *= 0.65f;
+            }
+
+            float tierLinear = Mathf.Clamp01(hitIntensity * StageSparkTierSelectScale);
+            float tierMetric = Mathf.Pow(tierLinear, StageSparkTierCurveExponent);
+            int tier = this.SelectSparkTier(tierMetric);
+
+            if (!this._stageSparks.isPlaying)
+            {
+                this._stageSparks.Play();
+            }
+
+            this.EmitStageSparksBurstFromBaked(tier);
+            this._stageSparkNextEmitTime = Time.time + StageSparkBurstMinIntervalSeconds;
+            if (band8Onset)
+            {
+                this._stageSparkKickBand8Armed = false;
+            }
         }
 
-        /// <summary>音圧（hitIntensity）で低・中・高のどのベイクセットを使うか。</summary>
-        private int SelectSparkTier(float hitIntensity)
-        {
-            if (hitIntensity < 0.36f)
-            {
-                return 0;
-            }
-
-            if (hitIntensity < 0.68f)
-            {
-                return 1;
-            }
-
-            return 2;
-        }
-
-        /// <summary>ベイク済みパラメータをそのまま Emit（Random・spread 再計算なし）。</summary>
+        /// <summary>ベイク済みパラメータをそのまま Emit（Menu と同一）。</summary>
         private void EmitStageSparksBurstFromBaked(int tier)
         {
             if (this._sparkTierBaked == null || this._sparkTierEmitCounts == null || tier < 0 || tier >= SparkTierCount)
@@ -240,25 +410,21 @@ namespace NullponSpectrum.Controllers
 
             int n = this._sparkTierEmitCounts[tier];
             SparkBakedEmit[] layer = this._sparkTierBaked[tier];
+            ParticleSystem.EmitParams emitParams = default;
+            emitParams.applyShapeToPosition = false;
             for (int i = 0; i < n; i++)
             {
                 SparkBakedEmit p = layer[i];
-                var emitParams = new ParticleSystem.EmitParams
-                {
-                    position = p.Position,
-                    startLifetime = p.StartLifetime,
-                    startSize = p.StartSize,
-                    velocity = p.Velocity,
-                    applyShapeToPosition = false
-                };
+                emitParams.position = p.Position;
+                emitParams.startLifetime = p.StartLifetime;
+                emitParams.startSize = p.StartSize;
+                emitParams.velocity = p.Velocity;
 
                 this._stageSparks.Emit(emitParams, 1);
             }
         }
 
-        /// <summary>
-        /// 低・中・高の代表 hit（burst）と代表ベース粒数で 3 セット分を事前生成。軽量モード時の粒数削減もここで反映。
-        /// </summary>
+        /// <summary>低・中・高ティア分を事前生成（Menu の BakeStageSparkBurstTemplates と同一ロジック）。</summary>
         private void BakeStageSparkBurstTemplates()
         {
             this._sparkTierBaked = new SparkBakedEmit[SparkTierCount][];
@@ -271,9 +437,8 @@ namespace NullponSpectrum.Controllers
                 {
                     UnityEngine.Random.InitState(54820481 + tier * 11003);
 
-                    // ティアごとの代表「音の強さ」0..1 と、旧ロジックに近い代表ベース粒数
-                    float burstRepr = tier == 0 ? 0.24f : (tier == 1 ? 0.52f : 0.96f);
-                    int baseCountRepr = tier == 0 ? 20 : (tier == 1 ? 38 : 58);
+                    float burstRepr = tier == 0 ? 0.30f : (tier == 1 ? 0.47f : 0.64f);
+                    int baseCountRepr = tier == 0 ? 24 : (tier == 1 ? 32 : 40);
 
                     int scaledCount = Mathf.Clamp(
                         Mathf.RoundToInt(baseCountRepr * Mathf.Lerp(SparkBurstCountScaleMin, SparkBurstCountScaleMax, burstRepr)),
@@ -287,16 +452,19 @@ namespace NullponSpectrum.Controllers
                     float spreadMul = Mathf.Lerp(SparkBurstSpreadMulMin, SparkBurstSpreadMulMax, burstRepr);
                     float upBlend = Mathf.Lerp(SparkBurstUpBlendMin, 1f, burstRepr);
                     float lifeMul = Mathf.Lerp(SparkBurstLifeMulMin, SparkBurstLifeMulMax, burstRepr);
+                    float tierLifeExtra = tier == 0 ? 1f : (tier == 1 ? StageSparkBakeLifetimeMidTierExtraMul : StageSparkBakeLifetimeHighTierExtraMul);
                     float ringRadius = (CircleRadius * 0.94f) * Mathf.Lerp(SparkBurstShapeRadiusMulMin, SparkBurstShapeRadiusMulMax, burstRepr);
                     float hitIntensityRepr = burstRepr;
+                    float particleSizeMax = tier == 0
+                        ? SparkParticleSizeMax
+                        : (tier == 1 ? SparkParticleSizeMax * SparkParticleSizeMidTierMaxMul : SparkParticleSizeMax * SparkParticleSizeHighTierMaxMul);
 
                     var arr = new SparkBakedEmit[SparkBakeMaxPerTier];
-                    // 発生位置はリング上に等間隔（n 角形の頂点）。半径のばらつきは付けずステージ円に揃える。
                     float angleStep = (Mathf.PI * 2f) / Mathf.Max(1, scaledCount);
                     for (int i = 0; i < scaledCount; i++)
                     {
                         float pint = Mathf.Clamp01(hitIntensityRepr * UnityEngine.Random.Range(0.9f, 1.05f));
-                        float life = UnityEngine.Random.Range(SparkLifetimeMin, SparkLifetimeMax) * lifeMul;
+                        float life = UnityEngine.Random.Range(StageSparkBakeLifetimeMin, StageSparkBakeLifetimeMax) * lifeMul * tierLifeExtra;
                         float vyCap = (SparkMaxRiseMeters / life) + (0.5f * SparkGravityEffective * life);
                         vyCap = Mathf.Min(vyCap, 1.2f);
                         float vy = Mathf.Lerp(0.22f, vyCap, pint * upBlend);
@@ -316,7 +484,7 @@ namespace NullponSpectrum.Controllers
                         {
                             Position = ringPos,
                             StartLifetime = life,
-                            StartSize = Mathf.Lerp(SparkParticleSizeMin, SparkParticleSizeMax, pint),
+                            StartSize = Mathf.Lerp(SparkParticleSizeMin, particleSizeMax, pint),
                             Velocity = new Vector3(xz.x, vy, xz.y)
                         };
                     }
@@ -331,84 +499,107 @@ namespace NullponSpectrum.Controllers
             }
         }
 
-        /// <summary>ステージ火花用 ParticleSystem の初期状態。実際の発生は rate 0 + EmitParams で行う。</summary>
+        /// <summary>ステージ火花用 ParticleSystem。Menu の BuildStageSparkParticles と同一構成。</summary>
         private void BuildStageSparkParticles()
         {
             var sparksGo = new GameObject("stageSpectrumSparks");
             sparksGo.transform.SetParent(_root.transform, false);
-            // ステージ円の中心付近（わずかに Y 上げて床めり込みを避ける）
             sparksGo.transform.localPosition = new Vector3(0f, 0.02f, 0f);
             sparksGo.transform.localRotation = Quaternion.identity;
 
-            _stageSparks = sparksGo.AddComponent<ParticleSystem>();
-            var ps = _stageSparks;
+            this._stageSparks = sparksGo.AddComponent<ParticleSystem>();
+            var ps = this._stageSparks;
 
-            // --- Main: デフォルト値（EmitParams が無い経路はほぼ無いが、カーブ・重力・色の基準）
             var main = ps.main;
-            main.playOnAwake = true; // シーン上で常時シミュレーション可能に
-            main.loop = true; // duration を繰り返し（継続 Emit 向け）
-            main.duration = 5f; // 1 ループの長さ（loop とセット）
-            main.startLifetime = new ParticleSystem.MinMaxCurve(SparkLifetimeMin, SparkLifetimeMax); // Emit 省略時の寿命レンジ
-            main.startSpeed = 0f; // 初速は EmitParams.velocity に任せる（二重加算を防ぐ）
-            main.startSize = new ParticleSystem.MinMaxCurve(SparkParticleSizeMin, SparkParticleSizeMax); // Emit 省略時のサイズレンジ
-            main.maxParticles = 512; // 同時に生存できる粒の上限
-            main.simulationSpace = ParticleSystemSimulationSpace.Local; // 親の位置・回転に追従
-            main.gravityModifier = 0.35f; // 世界重力に対する倍率（下向き加速）
-            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f); // スプライトの向きのばらつき（ランダム回転）
+            main.playOnAwake = true;
+            main.loop = true;
+            main.duration = 5f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(SparkLifetimeMin, SparkLifetimeMax);
+            main.startSpeed = 0f;
+            main.startSize = new ParticleSystem.MinMaxCurve(SparkParticleSizeMin, SparkParticleSizeMax);
+            main.maxParticles = 512;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+            main.gravityModifier = 0.35f;
+            main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
             main.startColor = new ParticleSystem.MinMaxGradient(
-                new Color(1f, 0.97f, 0.88f, 1f), // 明るい白〜クリーム
-                new Color(1f, 0.72f, 0.35f, 1f)); // オレンジ寄り（火花の色味）
+                new Color(1f, 0.97f, 0.88f, 1f),
+                new Color(1f, 0.72f, 0.35f, 1f));
 
-            // --- Emission: 自動連続放出はオフ（スペクトラムイベントで Emit のみ）
             var emission = ps.emission;
             emission.enabled = true;
             emission.rateOverTime = 0f;
 
-            // --- Shape: 手動 Emit では applyShapeToPosition=false のため位置には使わない。Play 時の見た目・デバッグ用の基準円
             var shape = ps.shape;
             shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Circle;
-            shape.radius = CircleRadius * 0.94f; // ステージ円に合わせた半径
-            shape.radiusThickness = 1f; // 1 = 円周近傍から出る（塗りつぶし円ではない）
-            shape.arc = 360f; // 全周
-            shape.rotation = new Vector3(90f, 0f, 0f); // デフォルトの円面を XZ（水平リング）に立てる
-            shape.randomDirectionAmount = 0f; // 形状からのランダム方向成分なし（方向は velocity で指定）
+            shape.radius = CircleRadius * 0.94f;
+            shape.radiusThickness = 1f;
+            shape.arc = 360f;
+            shape.rotation = new Vector3(90f, 0f, 0f);
+            shape.randomDirectionAmount = 0f;
 
-            // --- Velocity over Lifetime: オフ（初速は Emit のみ、軌道は重力で曲がる）
             var vel = ps.velocityOverLifetime;
             vel.enabled = false;
 
-            // --- Size over Lifetime: 寿命に応じてサイズを 1→0（きらっと消える）
             var sizeOl = ps.sizeOverLifetime;
             sizeOl.enabled = true;
-            AnimationCurve shrink = AnimationCurve.EaseInOut(0f, 1f, 1f, 0f);
-            sizeOl.size = new ParticleSystem.MinMaxCurve(1f, shrink); // startSize × カーブ
+            var shrink = new AnimationCurve(
+                new Keyframe(0f, 1f, 0f, 0f),
+                new Keyframe(0.55f, 1f, 0f, 0f),
+                new Keyframe(1f, 0f, 0f, 0f));
+            for (int ki = 0; ki < shrink.length; ki++)
+            {
+                shrink.SmoothTangents(ki, 0.35f);
+            }
 
-            // --- Color over Lifetime: 色を白→橙、透明度を 1→0（終端でフェードアウト）
+            sizeOl.size = new ParticleSystem.MinMaxCurve(1f, shrink);
+
             var colorOl = ps.colorOverLifetime;
             colorOl.enabled = true;
             var g = new Gradient();
             g.SetKeys(
                 new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(1f, 0.55f, 0.15f), 1f) },
-                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+                new[]
+                {
+                    new GradientAlphaKey(1f, 0f),
+                    new GradientAlphaKey(0.92f, 0.5f),
+                    new GradientAlphaKey(0.45f, 0.78f),
+                    new GradientAlphaKey(0f, 1f)
+                });
             colorOl.color = g;
 
             Shader sparkShader = VisualizerUtil.GetShader("Particles/Additive")
                 ?? VisualizerUtil.GetShader("Legacy Shaders/Particles/Additive")
                 ?? VisualizerUtil.GetShader("Sprites/Default");
             var renderer = sparksGo.GetComponent<ParticleSystemRenderer>();
-            renderer.renderMode = ParticleSystemRenderMode.Billboard; // 常にカメラ向きの板
-            renderer.alignment = ParticleSystemRenderSpace.Facing; // ビュー方向に合わせる
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.alignment = ParticleSystemRenderSpace.Facing;
             if (sparkShader != null)
             {
-                _sparkMaterial = new Material(sparkShader);
-                _sparkMaterial.renderQueue = 3200; // 透明メッシュより手前に描きたいときの目安
-                renderer.material = _sparkMaterial;
+                this._sparkMaterial = new Material(sparkShader);
+                this._sparkMaterial.renderQueue = 3200;
+                renderer.material = this._sparkMaterial;
             }
 
             ps.Clear();
             this.BakeStageSparkBurstTemplates();
             ps.Play();
+        }
+
+        /// <summary>tierMetric＝Pow(Clamp01(hit×Scale), Exponent) を低/中/高に振り分け。</summary>
+        private int SelectSparkTier(float hitIntensity)
+        {
+            if (hitIntensity < StageSparkTierBoundaryLowMid)
+            {
+                return 0;
+            }
+
+            if (hitIntensity < StageSparkTierBoundaryMidHigh)
+            {
+                return 1;
+            }
+
+            return 2;
         }
 
         /// <summary>内側から奥（径方向の外）へ、四角が埋まる量 0..1</summary>
@@ -477,7 +668,16 @@ namespace NullponSpectrum.Controllers
             int triCount = quads * 6;
             var vertices = new Vector3[vCount];
             var triangles = new int[triCount];
-            _colors = new Color[vCount];
+            var uvs = new Vector2[vCount];
+            var uv2s = new Vector2[vCount];
+            if (this._stageMeshShaderActive)
+            {
+                this._colors = null;
+            }
+            else
+            {
+                this._colors = new Color[vCount];
+            }
 
             for (int col = 0; col < _columnCount; col++)
             {
@@ -491,6 +691,9 @@ namespace NullponSpectrum.Controllers
                     tangent = -tangent;
                 }
 
+                int bandIdx = col >= _spectrumBandCount ? col - _spectrumBandCount : col;
+                float uv2Right = col >= _spectrumBandCount ? 1f : 0f;
+
                 for (int m = 0; m < SquaresPerBand; m++)
                 {
                     float centerDist = CircleRadius + m * RadialPitch;
@@ -501,6 +704,17 @@ namespace NullponSpectrum.Controllers
                     vertices[b + 1] = center + SquareHalf * tangent - SquareHalf * radial;
                     vertices[b + 2] = center + SquareHalf * tangent + SquareHalf * radial;
                     vertices[b + 3] = center - SquareHalf * tangent + SquareHalf * radial;
+
+                    var uvBand = new Vector2(bandIdx, m);
+                    uvs[b] = uvBand;
+                    uvs[b + 1] = uvBand;
+                    uvs[b + 2] = uvBand;
+                    uvs[b + 3] = uvBand;
+                    var uv2Side = new Vector2(uv2Right, 0f);
+                    uv2s[b] = uv2Side;
+                    uv2s[b + 1] = uv2Side;
+                    uv2s[b + 2] = uv2Side;
+                    uv2s[b + 3] = uv2Side;
 
                     int t = (col * SquaresPerBand + m) * 6;
                     triangles[t] = b;
@@ -517,9 +731,72 @@ namespace NullponSpectrum.Controllers
             _mesh.MarkDynamic();
             _mesh.vertices = vertices;
             _mesh.triangles = triangles;
-            _mesh.colors = _colors;
+            _mesh.uv = uvs;
+            _mesh.uv2 = uv2s;
+            if (this._colors != null)
+            {
+                _mesh.colors = _colors;
+            }
+
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
+
+            this._stageMeshPrevColumnPeak = new float[_columnCount];
+            for (int i = 0; i < _columnCount; i++)
+            {
+                this._stageMeshPrevColumnPeak[i] = float.NaN;
+            }
+
+            this._stageMeshHsvPrimed = false;
+        }
+
+        private static void StageMeshCopyHsv3(float[] dest, float[] src)
+        {
+            dest[0] = src[0];
+            dest[1] = src[1];
+            dest[2] = src[2];
+        }
+
+        private static bool StageMeshApproxHsv3(float[] a, float[] b)
+        {
+            float dh = Mathf.Abs(a[0] - b[0]);
+            dh = Mathf.Min(dh, 1f - dh);
+            return dh < 0.012f && Mathf.Abs(a[1] - b[1]) < 0.02f && Mathf.Abs(a[2] - b[2]) < 0.02f;
+        }
+
+        private static bool StageMeshPeakNearlyEqual(float prev, float peak)
+        {
+            if (float.IsNaN(prev))
+            {
+                return false;
+            }
+
+            return Mathf.Abs(prev - peak) < 0.0025f;
+        }
+
+        /// <summary>StageSpectrumFloor シェーダーへピーク・セイバー色・めりはりを渡す。</summary>
+        private void PushStageSpectrumFloorShaderUniforms(float[] peaks, float[] leftHsv, float[] rightHsv)
+        {
+            if (this._material == null || this._peakUploadBuffer == null || peaks == null)
+            {
+                return;
+            }
+
+            int n = Mathf.Min(peaks.Length, 31);
+            for (int i = 0; i < n; i++)
+            {
+                this._peakUploadBuffer[i] = peaks[i];
+            }
+
+            for (int i = n; i < 32; i++)
+            {
+                this._peakUploadBuffer[i] = 0f;
+            }
+
+            this._material.SetFloatArray("_PeakLevels", this._peakUploadBuffer);
+            this._material.SetVector("_LeftHsv", new Vector4(leftHsv[0], leftHsv[1], leftHsv[2], 0f));
+            this._material.SetVector("_RightHsv", new Vector4(rightHsv[0], rightHsv[1], rightHsv[2], 0f));
+            this._material.SetFloat("_Merihari", PluginConfig.Instance.enableMerihari ? 1f : 0f);
         }
 
         public void Initialize()
@@ -538,11 +815,14 @@ namespace NullponSpectrum.Controllers
             this._audioSpectrum.fallSpeed = 1f;
             this._audioSpectrum.sensibility = 10f;
 
-            Shader shader = VisualizerUtil.GetShader("Sprites/Default");
+            Shader shader = VisualizerUtil.GetShader("Custom/StageSpectrumFloor")
+                ?? VisualizerUtil.GetShader("Sprites/Default");
             if (shader == null)
             {
                 return;
             }
+
+            this._stageMeshShaderActive = string.Equals(shader.name, "Custom/StageSpectrumFloor", System.StringComparison.Ordinal);
 
             BuildRadialSquaresMesh();
 
@@ -558,8 +838,19 @@ namespace NullponSpectrum.Controllers
             _material = new Material(shader);
             _meshRenderer.material = _material;
 
-            BuildStageSparkParticles();
-            _sparkPrevDrumAverage = 0f;
+            if (this._stageMeshShaderActive)
+            {
+                this._peakUploadBuffer = new float[32];
+                this._material.SetFloat("_SquaresPerBand", SquaresPerBand);
+                this._material.SetFloat("_Merihari", PluginConfig.Instance.enableMerihari ? 1f : 0f);
+            }
+
+            this.BuildStageSparkParticles();
+            this._stageSparkPrevDrumBandInstant = null;
+            this._stageSparkPrevDrumInstantPrimed = false;
+            this._stageSparkPrevKickPeakBand8 = 0f;
+            this._stageSparkKickBand8Armed = true;
+            this._stageSparkNextEmitTime = 0f;
 
             _built = true;
             this._audioSpectrum.UpdatedRawSpectrums += this.OnUpdatedRawSpectrums;
@@ -612,16 +903,24 @@ namespace NullponSpectrum.Controllers
                         _material = null;
                     }
 
-                    if (_sparkMaterial != null)
+                    if (this._sparkMaterial != null)
                     {
-                        UnityEngine.Object.Destroy(_sparkMaterial);
-                        _sparkMaterial = null;
+                        UnityEngine.Object.Destroy(this._sparkMaterial);
+                        this._sparkMaterial = null;
                     }
 
-                    _stageSparks = null;
-                    _sparkTierBaked = null;
-                    _sparkTierEmitCounts = null;
+                    this._stageSparks = null;
+                    this._sparkTierBaked = null;
+                    this._sparkTierEmitCounts = null;
+                    _stageSparkPrevDrumBandInstant = null;
+                    _stageSparkPrevDrumInstantPrimed = false;
+                    _stageSparkPrevKickPeakBand8 = 0f;
+                    _stageSparkKickBand8Armed = true;
+                    _stageMeshPrevColumnPeak = null;
+                    _stageMeshHsvPrimed = false;
                     _colors = null;
+                    _peakUploadBuffer = null;
+                    _stageMeshShaderActive = false;
                     _built = false;
                 }
                 this._disposedValue = true;
