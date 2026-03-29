@@ -3,7 +3,7 @@
 		<tab-selector tab-tag='spectrum-tab' />
 	</vertical>
 	<vertical child-control-height='false' pad-top='4'>
-		<tab tags='spectrum-tab' tab-name='Visualizer'>
+		<tab tags='spectrum-tab' tab-name='GAME'>
 			<vertical child-control-height='false' child-expand-height='false'>
 				<horizontal pad-bottom='2'>
 					<bool-setting text='Enable' value='enable' apply-on-change='true'></bool-setting>
@@ -43,7 +43,7 @@
 				</horizontal>
 			</vertical>
 		</tab>
-		<tab tags='spectrum-tab' tab-name='Settings'>
+		<tab tags='spectrum-tab' tab-name='SETTINGS'>
 			<vertical>
 				<horizontal pad-bottom='2'>
 					<vertical child-control-height='false'>
@@ -69,7 +69,7 @@
 				</horizontal>
 			</vertical>
 		</tab>
-		<tab tags='spectrum-tab' tab-name='Menu Visualizer'>
+		<tab tags='spectrum-tab' tab-name='MENU'>
 			<vertical child-control-height='false' child-expand-height='false'>
 				<horizontal child-control-width='false' child-expand-width='false' spacing='2' pad-left='-2'>
 					<vertical child-control-height='false' child-expand-height='false'>
@@ -98,8 +98,9 @@
 					</vertical>
 					<vertical child-control-height='false' child-expand-height='false'>
 						<vertical child-control-height='false' child-expand-height='false' child-control-width='false' child-expand-width='false'>
+							<modifier value='MenuSphereVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Menu Sphere Visualizer'></modifier>
+							<modifier value='MenuSpotlightVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.StageVisualizer.png' text='Menu Spotlight Visualizer'></modifier>
 							<!--
-							<modifier value='SphereVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.SphereVisualizer.png' text='Sphere Visualizer'></modifier>
 							<modifier value='UneUneVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.UneUneVisualizer.png' text='UneUne Visualizer'></modifier>
 							<modifier value='LinebowVisualizer' apply-on-change='true' source='NullponSpectrum.Resources.LinebowVisualizer.png' text='Linebow Visualizer'></modifier>
 							-->

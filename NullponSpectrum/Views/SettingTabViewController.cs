@@ -333,6 +333,28 @@ namespace NullponSpectrum.Views
             }
         }
 
+        [UIValue("MenuSphereVisualizer")]
+        public bool MenuSphereVisualizer
+        {
+            get => conf.MenuSphereVisualizer;
+            set
+            {
+                if (conf.MenuSphereVisualizer == value) return;
+                conf.MenuSphereVisualizer = value;
+            }
+        }
+
+        [UIValue("MenuSpotlightVisualizer")]
+        public bool MenuSpotlightVisualizer
+        {
+            get => conf.MenuSpotlightVisualizer;
+            set
+            {
+                if (conf.MenuSpotlightVisualizer == value) return;
+                conf.MenuSpotlightVisualizer = value;
+            }
+        }
+
         [UIValue("SphereVisualizer")]
         public bool SphereVisualizer
         {

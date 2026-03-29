@@ -142,6 +142,11 @@
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <Private>False</Private>
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
@@ -187,6 +192,8 @@
     <Compile Include="Controllers\FrameFlowingVisualizerController.cs" />
     <Compile Include="Controllers\LineVisualizerController.cs" />
     <Compile Include="Controllers\MenuFloorRootController.cs" />
+    <Compile Include="Controllers\MenuSphereVisualizerController.cs" />
+    <Compile Include="Controllers\MenuSpotlightVisualizerController.cs" />
     <Compile Include="Controllers\MenuStageVisualizerContoller.cs" />
     <Compile Include="Controllers\ParticleVisualizerController.cs" />
     <Compile Include="Controllers\RainbowVisualizerController.cs" />
@@ -215,6 +222,8 @@
     <EmbeddedResource Include="manifest.json" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\MenuSphereSoft.shader" />
+    <None Include="Assets\Shaders\MenuSpotlightBeam.shader" />
     <None Include="Assets\Shaders\StageProceduralSparks.shader" />
     <None Include="Assets\Shaders\StageSpectrumFloor.shader" />
     <None Include="Directory.Build.props" Condition="Exists('Directory.Build.props')" />

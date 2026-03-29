@@ -34,6 +34,8 @@ namespace NullponSpectrum.Installers
             }
 
             this.Container.BindInterfacesAndSelfTo<MenuStageVisualizerController>().AsCached().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<MenuSphereVisualizerController>().AsCached().NonLazy();
+            this.Container.BindInterfacesAndSelfTo<MenuSpotlightVisualizerController>().AsCached().NonLazy();
         }
     }
 }

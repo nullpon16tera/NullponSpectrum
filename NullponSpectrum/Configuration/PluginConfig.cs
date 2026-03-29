@@ -39,6 +39,8 @@ namespace NullponSpectrum.Configuration
 
         /// <summary>Menu用スペクトラム</summary>
         public virtual bool MenuStageVisualizer { get; set; } = false;
+        public virtual bool MenuSphereVisualizer { get; set; } = false;
+        public virtual bool MenuSpotlightVisualizer { get; set; } = false;
 
         /// <summary>スペクトラム（AudioSpectrum）を使う床ビジュアライザが 1 つでも ON か。</summary>
         public bool HasAnyActiveSpectrumFloorVisualizer()
